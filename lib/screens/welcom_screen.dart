@@ -21,10 +21,10 @@ class WelcomeScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                 horizontal: 40.0,
               ),
-              child: Column( // Sử dụng Column để dễ điều chỉnh vị trí
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center, // Căn giữa theo chiều dọc
                 children: [
-                  const SizedBox(height: 100), // TĂNG GIÁ TRỊ NÀY để đẩy chữ xuống dưới thêm nữa
+                  const SizedBox(height: 100), // đẩy chữ xuống dưới
                   RichText(
                     textAlign: TextAlign.center,
                     text: const TextSpan(
@@ -53,7 +53,7 @@ class WelcomeScreen extends StatelessWidget {
                   Expanded(
                     child: WelcomeButton(
                       buttonText: 'Sign in',
-                      onTap: const SignInScreen(), // Thêm const để hết lỗi
+                      onTap: const SignInScreen(),
                       color: Colors.transparent,
                       textColor: Colors.white,
                     ),

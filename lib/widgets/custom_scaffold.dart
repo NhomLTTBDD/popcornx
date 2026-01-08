@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Cần thêm import này để chỉnh status bar
+import 'package:flutter/services.dart';
 
 class CustomScaffold extends StatelessWidget {
   const CustomScaffold({super.key, this.child});
@@ -7,10 +7,10 @@ class CustomScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Cấu hình thanh trạng thái trong suốt cho mọi màn hình sử dụng Scaffold này
+    // Cấu hình thanh trạng thái trong suốt cho mọi màn hình sử dụng Scaffold
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent, // Làm trong suốt thanh trạng thái
-      statusBarIconBrightness: Brightness.light, // Các icon pin, sóng sẽ màu trắng
+      statusBarIconBrightness: Brightness.light,
     ));
 
     return Scaffold(
@@ -18,8 +18,8 @@ class CustomScaffold extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent, // Trong suốt để thấy hình nền
-        elevation: 0, // Xóa bóng đổ (tránh tạo đường kẻ)
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Stack(
         children: <Widget>[
@@ -30,7 +30,7 @@ class CustomScaffold extends StatelessWidget {
             height: double.infinity,
           ),
           SafeArea(
-            // TẮT SafeArea ở phía trên để hình nền và màu sắc tràn lên status bar
+            // hình nền và màu sắc tràn lên status bar
             top: false,
             child: child!,
           ),
