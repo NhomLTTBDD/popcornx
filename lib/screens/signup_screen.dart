@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_movie/screens/signin_srceen.dart';
 import 'package:app_movie/theme/theme.dart';
 import 'package:app_movie/widgets/custom_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -13,7 +15,20 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignUpKey = GlobalKey<FormState>();
+  // Khai báo các controller
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   bool agreePersonalData = true;
+
+  @override
+  void dispose() {
+    // Giải phóng bộ nhớ
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 40.0),
                       // --- Full Name ---
                       TextFormField(
+                        controller: nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Full Name';
@@ -75,6 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 25.0),
                       // --- Email ---
                       TextFormField(
+                        controller: emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -98,6 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 25.0),
                       // --- Password ---
                       TextFormField(
+                        controller: passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -151,15 +169,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formSignUpKey.currentState!.validate() && agreePersonalData) {
+                          onPressed: () async {
+                            // 1. Kiểm tra xem người dùng đã tích vào ô đồng ý điều khoản chưa
+                            if (!agreePersonalData) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Processing Registration')),
+                                const SnackBar(content: Text("Vui lòng đồng ý với điều khoản bảo mật.")),
                               );
-                            } else if (!agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please agree to personal data processing')),
-                              );
+                              return;
+                            }
+
+                            // 2. Kiểm tra tính hợp lệ của Form (các ô nhập liệu không trống)
+                            if (_formSignUpKey.currentState!.validate()) {
+                              try {
+                                // Thực hiện đăng ký
+                                await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text.trim(),
+                                );
+
+                                // 3. Thông báo thành công
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Đăng ký thành công!")),
+                                  );
+
+                                  // 4. Chuyển hướng sau 2 giây
+                                  Future.delayed(const Duration(seconds: 2), () {
+                                    if (mounted) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                      );
+                                    }
+                                  });
+                                }
+                              } on FirebaseAuthException catch (e) {
+                                // 5. Xử lý các mã lỗi cụ thể từ Firebase
+                                String message = "Đã xảy ra lỗi.";
+                                if (e.code == 'weak-password') {
+                                  message = "Mật khẩu quá yếu.";
+                                } else if (e.code == 'email-already-in-use') {
+                                  message = "Email này đã được sử dụng.";
+                                } else if (e.code == 'invalid-email') {
+                                  message = "Email không đúng định dạng.";
+                                }
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
+                                );
+                              } catch (e) {
+                                print(e); // Lỗi hệ thống khác
+                              }
                             }
                           },
                           child: const Text('Sign up'),
@@ -184,7 +244,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         children: [
                           Brand(Brands.facebook),
                           Brand(Brands.google),
-                          Brand(Brands.apple_logo),
+                          const Icon(IonIcons.logo_apple, color: Colors.black, size: 35),
                         ],
                       ),
                       const SizedBox(height: 25.0),

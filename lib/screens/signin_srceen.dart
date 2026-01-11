@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_movie/screens/signup_screen.dart';
 import 'package:app_movie/theme/theme.dart';
 import 'package:app_movie/widgets/custom_scaffold.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
+
+import 'home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -13,7 +16,18 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  // 1. Khai báo controller cho Email và Password
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   bool rememberPassword = true;
+
+  // Giải phóng bộ nhớ khi thoát màn hình để tránh rò rỉ (leak) bộ nhớ
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +66,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 40.0),
                       // Email
                       TextFormField(
+                        controller: emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -75,6 +90,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 25.0),
                       // Password
                       TextFormField(
+                        controller: passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -138,16 +154,48 @@ class _SignInScreenState extends State<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            // 1. Kiểm tra tính hợp lệ của Form (Email/Password không để trống)
                             if (_formSignInKey.currentState!.validate()) {
-                              if (rememberPassword) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Processing Data')),
+                              try {
+                                // 2. Gọi lệnh ĐĂNG NHẬP của Firebase
+                                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text.trim(),
                                 );
-                              } else {
+
+                                // 3. Nếu đăng nhập thành công
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Đăng nhập thành công!"),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+
+                                  // 4. Chuyển hướng ngay vào trang Home
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                  );
+                                }
+                              } on FirebaseAuthException catch (e) {
+                                // 5. Xử lý các lỗi đăng nhập cụ thể
+                                String errorMessage = "Email hoặc mật khẩu không chính xác.";
+
+                                if (e.code == 'user-not-found') {
+                                  errorMessage = "Tài khoản này chưa được đăng ký.";
+                                } else if (e.code == 'wrong-password') {
+                                  errorMessage = "Mật khẩu không chính xác.";
+                                } else if (e.code == 'invalid-email') {
+                                  errorMessage = "Định dạng Email không hợp lệ.";
+                                }
+
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please agree to the processing')),
+                                  SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
                                 );
+                              } catch (e) {
+                                print("Lỗi hệ thống: $e");
                               }
                             }
                           },
@@ -173,7 +221,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         children: [
                           Brand(Brands.facebook),
                           Brand(Brands.google),
-                          Brand(Brands.apple_logo),
+                          const Icon(IonIcons.logo_apple, color: Colors.black, size: 35),
                         ],
                       ),
                       const SizedBox(height: 25.0),
