@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "486682269384",
+    "project_id": "baitap-24951",
+    "storage_bucket": "baitap-24951.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486682269384:android:e7cad451698176e50437fd",
+        "android_client_info": {
+          "package_name": "com.example.baitapthuchanh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjz80kUg1RU48BZkPUAg4SaObRP5w0O00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

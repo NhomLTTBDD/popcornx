@@ -1,61 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
-
-import 'core/app_export.dart';
-import 'widgets/error_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
+import 'services/firestore_service.dart';
+import 'routes/routes.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/movie_admin_dashboard.dart';
+import 'theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  bool hasShownError = false;
-
-  // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    if (!hasShownError) {
-      hasShownError = true;
-
-      // Reset flag after 3 seconds to allow error widget on new screens
-      Future.delayed(Duration(seconds: 5), () {
-        hasShownError = false;
-      });
-
-      return AppErrorWidget(errorDetails: details);
-    }
-    return SizedBox.shrink();
-  };
-
-  // 🚨 CRITICAL: Device orientation lock - DO NOT REMOVE
-  Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-  ]).then((value) {
-    runApp(MyApp());
-  });
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Sizer(
-      builder: (context, orientation, screenType) {
-        return MaterialApp(
-          title: 'streamadmin_dashboard',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.dark, // Netflix uses dark theme
-          // 🚨 CRITICAL: NEVER REMOVE OR MODIFY
-          builder: (context, child) {
-            return MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(1.0)),
-              child: child!,
-            );
+    return MaterialApp(
+      title: 'Popcornx',
+      debugShowCheckedModeBanner: false,
+      theme: lightMode,
+      home: const AuthWrapper(),
+      onGenerateRoute: AppRoutes.generateRoute,
+    );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final FirestoreService _firestoreService = FirestoreService();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // Not logged in
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const WelcomeScreen();
+        }
+
+        // Logged in - check role
+        return FutureBuilder<String?>(
+          future: _firestoreService.getUserRole(snapshot.data!.uid),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final role = roleSnapshot.data ?? 'user';
+
+            // Admin goes to admin dashboard
+            if (role == 'admin') {
+              return const MovieAdminDashboard();
+            }
+
+            // User goes to regular dashboard
+            return const DashboardScreen();
           },
-          // 🚨 END CRITICAL SECTION
-          debugShowCheckedModeBanner: false,
-          routes: AppRoutes.routes,
-          initialRoute: AppRoutes.initial,
         );
       },
     );
