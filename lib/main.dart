@@ -1,36 +1,86 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'package:app_movie/screens/welcom_screen.dart';
-import 'package:app_movie/theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
+import 'services/firestore_service.dart';
+import 'routes/routes.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/movie_admin_dashboard.dart';
+import 'theme/theme.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // Làm thanh trạng thái trong suốt
-    statusBarIconBrightness: Brightness.light, // Chữ trên thanh trạng thái màu trắng
-  ));
-  // Khởi tạo Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Popcornx',
+      debugShowCheckedModeBanner: false,
       theme: lightMode,
-      home: const WelcomeScreen(),
+      home: const AuthWrapper(),
+      onGenerateRoute: AppRoutes.generateRoute,
+    );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final FirestoreService _firestoreService = FirestoreService();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // Not logged in
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const WelcomeScreen();
+        }
+
+        // Logged in - check role
+        return FutureBuilder<String?>(
+          future: _firestoreService.getUserRole(snapshot.data!.uid),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final role = roleSnapshot.data ?? 'user';
+
+            // Admin goes to admin dashboard
+            if (role == 'admin') {
+              return const MovieAdminDashboard();
+            }
+
+            // User goes to regular dashboard
+            return const DashboardScreen();
+          },
+        );
+      },
     );
   }
 }
