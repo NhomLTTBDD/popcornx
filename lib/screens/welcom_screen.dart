@@ -24,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center, // Căn giữa theo chiều dọc
                 children: [
-                  const SizedBox(height: 100), // đẩy chữ xuống dưới
+                  const SizedBox(height: 120), // đẩy chữ xuống dưới
                   RichText(
                     textAlign: TextAlign.center,
                     text: const TextSpan(

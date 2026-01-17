@@ -4,6 +4,7 @@ import 'package:app_movie/theme/theme.dart';
 import 'package:app_movie/widgets/custom_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -21,6 +22,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool agreePersonalData = true;
 
+  // Hàm xử lý đăng nhập bằng Google
+  Future<void> _signUpWithGoogle() async {
+    try {
+      // TẠO ĐỐI TƯỢNG GOOGLE SIGN IN
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      // Đăng xuất tài khoản cũ ra khỏi bộ nhớ tạm của App
+      await googleSignIn.signOut();
+      // Bắt đầu quy trình đăng nhập mới
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) return; // Người dùng hủy bỏ
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      print("Error Google Sign In: $e");
+    }
+  }
   @override
   void dispose() {
     // Giải phóng bộ nhớ
@@ -243,8 +275,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Brand(Brands.facebook),
-                          Brand(Brands.google),
-                          const Icon(IonIcons.logo_apple, color: Colors.black, size: 35),
+                          // hàm đăng nhập Google
+                          GestureDetector(
+                            onTap: _signUpWithGoogle,
+                            child: Brand(Brands.google),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),

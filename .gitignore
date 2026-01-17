@@ -44,7 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-Firebase
+#Firebase
 /lib/firebase_options.dart
 
 # Android Services
@@ -55,3 +55,20 @@ ios/Runner/GoogleService-Info.plist
 *.lock
 *.lock.bak
 .env*
+
+# --- Cấu hình thiết bị Android cục bộ ---
+android/local.properties      # Chứa đường dẫn SDK của riêng máy
+android/key.properties        # Chứa mật khẩu ký App
+.gradle/                      # Thư mục rác của Gradle
+
+# --- Keystore (File ký app để lên Store) ---
+*.jks
+*.keystore                    # File định danh ứng dụng Android
+
+# --- Mac OS rác ---
+.DS_Store                     # File hệ thống của Mac
+**/.DS_Store
+
+# --- Các file log của Firebase ---
+*-debug.log                   # Các file ghi lỗi của Firebase
+.firebase/                    # Thư mục chứa token đăng nhập Firebase CLI

@@ -4,7 +4,7 @@ import 'package:app_movie/theme/theme.dart';
 import 'package:app_movie/widgets/custom_scaffold.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 import 'home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -21,6 +21,37 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool rememberPassword = true;
 
+  // Hàm xử lý đăng nhập bằng Google
+  Future<void> _signInWithGoogle() async {
+    try {
+      // TẠO ĐỐI TƯỢNG GOOGLE SIGN IN
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      // Đăng xuất tài khoản cũ ra khỏi bộ nhớ tạm của App
+      await googleSignIn.signOut();
+      // Bắt đầu quy trình đăng nhập mới
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) return; // Người dùng hủy bỏ
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      print("Error Google Sign In: $e");
+    }
+  }
   // Giải phóng bộ nhớ khi thoát màn hình để tránh rò rỉ (leak) bộ nhớ
   @override
   void dispose() {
@@ -206,12 +237,18 @@ class _SignInScreenState extends State<SignInScreen> {
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider(thickness: 0.7, color: Colors.grey.withOpacity(0.5))),
+                          Expanded(child: Divider(
+                              thickness: 0.7,
+                              color: Colors.grey.withOpacity(0.5))),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Text('Sign in with', style: TextStyle(color: Colors.black45)),
+                            child: Text('Sign in with',
+                                style: TextStyle(
+                                    color: Colors.black45)),
                           ),
-                          Expanded(child: Divider(thickness: 0.7, color: Colors.grey.withOpacity(0.5))),
+                          Expanded(child: Divider(
+                              thickness: 0.7,
+                              color: Colors.grey.withOpacity(0.5))),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -220,8 +257,11 @@ class _SignInScreenState extends State<SignInScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Brand(Brands.facebook),
-                          Brand(Brands.google),
-                          const Icon(IonIcons.logo_apple, color: Colors.black, size: 35),
+                          // hàm đăng nhập Google
+                          GestureDetector(
+                            onTap: _signInWithGoogle,
+                            child: Brand(Brands.google),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),
