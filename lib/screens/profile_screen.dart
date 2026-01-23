@@ -23,12 +23,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('Login successful 🎉'),
-          content: Text('Welcome ${widget.user.displayName ?? ''}!'),
+          backgroundColor: const Color(0xFF1A1A1A),
+          title: const Text(
+            'Login successful 🎉',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Welcome ${widget.user.displayName ?? ''}!',
+            style: const TextStyle(color: Colors.grey),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+              child: const Text('OK',
+                  style: TextStyle(color: Colors.redAccent)),
             ),
           ],
         ),
@@ -48,15 +56,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleSignOut() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Đăng xuất'),
-        content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text(
+          'Đăng xuất',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Bạn có chắc chắn muốn đăng xuất?',
+          style: TextStyle(color: Colors.grey),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child:
+                const Text('Hủy', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Đăng xuất'),
           ),
@@ -66,17 +85,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirm == true) {
       await _authService.signOut();
-      // Navigation will be handled by auth state listener in main.dart
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
-        title: const Text('Profile'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Colors.white),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon:
+              const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -89,16 +114,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 CircleAvatar(
                   radius: 55,
                   backgroundImage: NetworkImage(
-                    widget.user.photoURL ?? 'https://i.pravatar.cc/300',
+                    widget.user.photoURL ??
+                        'https://i.pravatar.cc/300',
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   bottom: 0,
                   right: 0,
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Colors.blue,
-                    child: Icon(
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
                       Icons.camera_alt,
                       size: 18,
                       color: Colors.white,
@@ -108,16 +137,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 24),
+
+            /// SLOGAN
             Text(
               slogan,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color.fromARGB(255, 0, 183, 255),
+                color: Colors.redAccent,
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+
+            const SizedBox(height: 32),
+
             _buildTextField(
               label: 'Name',
               initialValue: widget.user.displayName ?? '',
@@ -134,16 +167,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               initialValue: '23/05/1995',
               suffixIcon: Icons.keyboard_arrow_down,
             ),
+
             const Spacer(),
+
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: _handleSignOut,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('Sign Out'),
+                child: const Text(
+                  'Sign Out',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ),
           ],
@@ -161,11 +202,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return TextFormField(
       initialValue: initialValue,
       readOnly: readOnly,
+      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+        labelStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: Colors.grey.shade900,
+        suffixIcon: suffixIcon != null
+            ? Icon(suffixIcon, color: Colors.grey)
+            : null,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide:
+              BorderSide(color: Colors.grey.shade800),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide:
+              const BorderSide(color: Colors.redAccent),
         ),
       ),
     );

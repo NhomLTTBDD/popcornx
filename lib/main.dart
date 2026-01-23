@@ -6,7 +6,6 @@ import 'services/firestore_service.dart';
 import 'routes/routes.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/movie_admin_dashboard.dart';
 import 'theme/theme.dart';
 
 void main() async {
@@ -14,6 +13,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  final firestoreService = FirestoreService();
+  await firestoreService.initializeMovies();
+  await firestoreService.initializeCinemaData();
+  
   runApp(const MyApp());
 }
 
@@ -69,14 +73,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               );
             }
 
-            final role = roleSnapshot.data ?? 'user';
-
-            // Admin goes to admin dashboard
-            if (role == 'admin') {
-              return const MovieAdminDashboard();
-            }
-
-            // User goes to regular dashboard
+            // Tất cả user đều vào dashboard chính
             return const DashboardScreen();
           },
         );
