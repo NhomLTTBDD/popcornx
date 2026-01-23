@@ -41,49 +41,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCrpIBJIyknFQ7FdlwTxTrqyqqtO4URm7g',
-    appId: '1:486682269384:web:55f2058cf5fbbe460437fd',
-    messagingSenderId: '486682269384',
-    projectId: 'baitap-24951',
-    authDomain: 'baitap-24951.firebaseapp.com',
-    storageBucket: 'baitap-24951.firebasestorage.app',
-    measurementId: 'G-KN24YJE9E3',
+    apiKey: 'AIzaSyBQI3XBRmWEAAgUVCUTiEue1-RFvUd1Jbg',
+    appId: '1:701498491294:web:f1953f8e077ecd8ed2168f',
+    messagingSenderId: '701498491294',
+    projectId: 'popcornx-29d66',
+    authDomain: 'popcornx-29d66.firebaseapp.com',
+    storageBucket: 'popcornx-29d66.firebasestorage.app',
+    measurementId: 'G-2WP2BQN78F',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCjz80kUg1RU48BZkPUAg4SaObRP5w0O00',
-    appId: '1:486682269384:android:e7cad451698176e50437fd',
-    messagingSenderId: '486682269384',
-    projectId: 'baitap-24951',
-    storageBucket: 'baitap-24951.firebasestorage.app',
+    apiKey: 'AIzaSyCy_IbaBMhFC_ObmAXy61b6grDNBWxBACY',
+    appId: '1:701498491294:android:24b25d3669e124afd2168f',
+    messagingSenderId: '701498491294',
+    projectId: 'popcornx-29d66',
+    storageBucket: 'popcornx-29d66.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCGdefkNNZLkzvIRF8H7Hj0Gryi3HiynKc',
-    appId: '1:486682269384:ios:90dbe47e873826330437fd',
-    messagingSenderId: '486682269384',
-    projectId: 'baitap-24951',
-    storageBucket: 'baitap-24951.firebasestorage.app',
-    iosBundleId: 'com.example.baitapthuchanh',
+    apiKey: 'AIzaSyCdtpJSaxGL6JU0WKbu1rS732Y9lkQUfPY',
+    appId: '1:701498491294:ios:511a9556023db136d2168f',
+    messagingSenderId: '701498491294',
+    projectId: 'popcornx-29d66',
+    storageBucket: 'popcornx-29d66.firebasestorage.app',
+    androidClientId: '701498491294-t2jcrdg4aj8je4guen3466v7d7qrde9p.apps.googleusercontent.com',
+    iosClientId: '701498491294-cdkof4elbcj5fd9f4j66q90hb9i4vfth.apps.googleusercontent.com',
+    iosBundleId: 'com.example.appMovie',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCGdefkNNZLkzvIRF8H7Hj0Gryi3HiynKc',
-    appId: '1:486682269384:ios:90dbe47e873826330437fd',
-    messagingSenderId: '486682269384',
-    projectId: 'baitap-24951',
-    storageBucket: 'baitap-24951.firebasestorage.app',
-    iosBundleId: 'com.example.baitapthuchanh',
+    apiKey: 'AIzaSyCdtpJSaxGL6JU0WKbu1rS732Y9lkQUfPY',
+    appId: '1:701498491294:ios:511a9556023db136d2168f',
+    messagingSenderId: '701498491294',
+    projectId: 'popcornx-29d66',
+    storageBucket: 'popcornx-29d66.firebasestorage.app',
+    androidClientId: '701498491294-t2jcrdg4aj8je4guen3466v7d7qrde9p.apps.googleusercontent.com',
+    iosClientId: '701498491294-cdkof4elbcj5fd9f4j66q90hb9i4vfth.apps.googleusercontent.com',
+    iosBundleId: 'com.example.appMovie',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCrpIBJIyknFQ7FdlwTxTrqyqqtO4URm7g',
-    appId: '1:486682269384:web:fe84075d5ad382680437fd',
-    messagingSenderId: '486682269384',
-    projectId: 'baitap-24951',
-    authDomain: 'baitap-24951.firebaseapp.com',
-    storageBucket: 'baitap-24951.firebasestorage.app',
-    measurementId: 'G-Z69YW19XN2',
+    apiKey: 'AIzaSyBQI3XBRmWEAAgUVCUTiEue1-RFvUd1Jbg',
+    appId: '1:701498491294:web:91295638ed7ab202d2168f',
+    messagingSenderId: '701498491294',
+    projectId: 'popcornx-29d66',
+    authDomain: 'popcornx-29d66.firebaseapp.com',
+    storageBucket: 'popcornx-29d66.firebasestorage.app',
+    measurementId: 'G-XEF9XY6NK7',
   );
 
 }

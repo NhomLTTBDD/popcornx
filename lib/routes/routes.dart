@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:baitapthuchanh/screens/welcome_screen.dart';
-import 'package:baitapthuchanh/screens/signin_screen.dart';
-import 'package:baitapthuchanh/screens/signup_screen.dart';
-import 'package:baitapthuchanh/screens/dashboard_screen.dart';
-import 'package:baitapthuchanh/screens/movie_admin_dashboard.dart';
-import 'package:baitapthuchanh/screens/profile_screen.dart';
-import 'package:baitapthuchanh/screens/forget_password_screen.dart';
+import 'package:app_movie/screens/welcome_screen.dart';
+import 'package:app_movie/screens/signin_screen.dart';
+import 'package:app_movie/screens/signup_screen.dart';
+import 'package:app_movie/screens/dashboard_screen.dart';
+import 'package:app_movie/screens/movie_admin_dashboard.dart';
+import 'package:app_movie/screens/profile_screen.dart';
+import 'package:app_movie/screens/forget_password_screen.dart';
 
 class AppRoutes {
   static const String welcome = '/';

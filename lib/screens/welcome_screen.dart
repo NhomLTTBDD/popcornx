@@ -1,8 +1,11 @@
-import 'package:baitapthuchanh/screens/signin_screen.dart';
-import 'package:baitapthuchanh/screens/signup_screen.dart';
-import 'package:baitapthuchanh/widgets/custom_scaffold.dart';
-import 'package:baitapthuchanh/widgets/welcom_button.dart';
+import 'package:app_movie/screens/signin_screen.dart';
+import 'package:app_movie/screens/signup_screen.dart';
+import 'package:app_movie/theme/theme.dart';
+import 'package:app_movie/widgets/custom_scaffold.dart';
+import 'package:app_movie/widgets/welcom_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -15,11 +18,13 @@ class WelcomeScreen extends StatelessWidget {
           Flexible(
             flex: 8,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 40.0,
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center, // Căn giữa theo chiều dọc
                 children: [
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 150), // đẩy chữ xuống dưới
                   RichText(
                     textAlign: TextAlign.center,
                     text: const TextSpan(

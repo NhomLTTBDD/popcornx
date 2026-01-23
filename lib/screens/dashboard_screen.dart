@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:baitapthuchanh/services/firestore_service.dart';
-import 'package:baitapthuchanh/screens/movie_admin_dashboard.dart';
-import 'package:baitapthuchanh/screens/profile_screen.dart';
+import 'package:app_movie/services/firestore_service.dart';
+import 'package:app_movie/screens/movie_admin_dashboard.dart';
+import 'package:app_movie/screens/profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:baitapthuchanh/services/remote_config_service.dart';
-import 'package:baitapthuchanh/services/auth_service.dart';
+import 'package:app_movie/services/remote_config_service.dart';
+import 'package:app_movie/services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;

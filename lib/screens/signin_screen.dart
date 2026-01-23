@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:baitapthuchanh/screens/signup_screen.dart';
-import 'package:baitapthuchanh/screens/forget_password_screen.dart';
-import 'package:baitapthuchanh/services/auth_service.dart';
-import 'package:baitapthuchanh/theme/theme.dart';
-import 'package:baitapthuchanh/widgets/custom_scaffold.dart';
+import 'package:app_movie/screens/signup_screen.dart';
+import 'package:app_movie/theme/theme.dart';
+import 'package:app_movie/widgets/custom_scaffold.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'dashboard_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -15,12 +16,43 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  // 1. Khai báo controller cho Email và Password
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
   bool rememberPassword = true;
-  bool _isLoading = false;
 
+  // Hàm xử lý đăng nhập bằng Google
+  Future<void> _signInWithGoogle() async {
+    try {
+      // TẠO ĐỐI TƯỢNG GOOGLE SIGN IN
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      // Đăng xuất tài khoản cũ ra khỏi bộ nhớ tạm của App
+      await googleSignIn.signOut();
+      // Bắt đầu quy trình đăng nhập mới
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) return; // Người dùng hủy bỏ
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      }
+    } catch (e) {
+      print("Error Google Sign In: $e");
+    }
+  }
+  // Giải phóng bộ nhớ khi thoát màn hình để tránh rò rỉ (leak) bộ nhớ
   @override
   void dispose() {
     emailController.dispose();
@@ -33,7 +65,10 @@ class _SignInScreenState extends State<SignInScreen> {
     return CustomScaffold(
       child: Column(
         children: [
-          const Expanded(flex: 1, child: SizedBox(height: 10)),
+          const Expanded(
+            flex: 1,
+            child: SizedBox(height: 10),
+          ),
           Expanded(
             flex: 7,
             child: Container(
@@ -60,9 +95,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 40.0),
+                      // Email
                       TextFormField(
                         controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -84,6 +119,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 25.0),
+                      // Password
                       TextFormField(
                         controller: passwordController,
                         obscureText: true,
@@ -109,6 +145,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 25.0),
+                      // Remember me & Forget Password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -131,12 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ForgetPasswordScreen(),
-                                ),
-                              );
+                              // Chuyển đến màn hình quên mật khẩu
                             },
                             child: Text(
                               'Forget password?',
@@ -149,66 +181,91 @@ class _SignInScreenState extends State<SignInScreen> {
                         ],
                       ),
                       const SizedBox(height: 25.0),
+                      // Nút Sign In
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : _handleSignIn,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : const Text('Sign in'),
+                          onPressed: () async {
+                            // 1. Kiểm tra tính hợp lệ của Form (Email/Password không để trống)
+                            if (_formSignInKey.currentState!.validate()) {
+                              try {
+                                // 2. Gọi lệnh ĐĂNG NHẬP của Firebase
+                                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text.trim(),
+                                );
+
+                                // 3. Nếu đăng nhập thành công
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Đăng nhập thành công!"),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+
+                                  // 4. Chuyển hướng ngay vào trang dashboard
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                                  );
+                                }
+                              } on FirebaseAuthException catch (e) {
+                                // 5. Xử lý các lỗi đăng nhập cụ thể
+                                String errorMessage = "Email hoặc mật khẩu không chính xác.";
+
+                                if (e.code == 'user-not-found') {
+                                  errorMessage = "Tài khoản này chưa được đăng ký.";
+                                } else if (e.code == 'wrong-password') {
+                                  errorMessage = "Mật khẩu không chính xác.";
+                                } else if (e.code == 'invalid-email') {
+                                  errorMessage = "Định dạng Email không hợp lệ.";
+                                }
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+                                );
+                              } catch (e) {
+                                print("Lỗi hệ thống: $e");
+                              }
+                            }
+                          },
+                          child: const Text('Sign in'),
                         ),
                       ),
                       const SizedBox(height: 25.0),
+                      // Divider
                       Row(
                         children: [
-                          Expanded(
-                            child: Divider(
+                          Expanded(child: Divider(
                               thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
+                              color: Colors.grey.withOpacity(0.5))),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              'Sign in with',
-                              style: TextStyle(color: Colors.black45),
-                            ),
+                            child: Text('Sign in with',
+                                style: TextStyle(
+                                    color: Colors.black45)),
                           ),
-                          Expanded(
-                            child: Divider(
+                          Expanded(child: Divider(
                               thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
+                              color: Colors.grey.withOpacity(0.5))),
                         ],
                       ),
                       const SizedBox(height: 25.0),
+                      // Social Brands
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildSocialIcon(
-                            icon: Icons.facebook,
-                            onTap: () {},
-                          ),
-                          _buildSocialIcon(
-                            icon: Icons.g_mobiledata,
-                            onTap: _handleGoogleSignIn,
-                          ),
-                          _buildSocialIcon(
-                            icon: Icons.apple,
-                            onTap: () {},
+                          Brand(Brands.facebook),
+                          // hàm đăng nhập Google
+                          GestureDetector(
+                            onTap: _signInWithGoogle,
+                            child: Brand(Brands.google),
                           ),
                         ],
                       ),
                       const SizedBox(height: 25.0),
+                      // Don't have an account -> Sign Up
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -220,9 +277,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignUpScreen(),
-                                ),
+                                MaterialPageRoute(builder: (e) => const SignUpScreen()),
                               );
                             },
                             child: Text(
@@ -242,104 +297,6 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _handleSignIn() async {
-    if (_formSignInKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      try {
-        await _authService.signInWithEmailAndPassword(
-          emailController.text.trim(),
-          passwordController.text.trim(),
-        );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Đăng nhập thành công!"),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Navigation will be handled by auth state listener in main.dart
-        }
-      } on FirebaseAuthException catch (e) {
-        String errorMessage = "Email hoặc mật khẩu không chính xác.";
-        if (e.code == 'user-not-found') {
-          errorMessage = "Tài khoản này chưa được đăng ký.";
-        } else if (e.code == 'wrong-password') {
-          errorMessage = "Mật khẩu không chính xác.";
-        } else if (e.code == 'invalid-email') {
-          errorMessage = "Định dạng Email không hợp lệ.";
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Lỗi hệ thống: $e"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
-    }
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
-    try {
-      final user = await _authService.signInWithGoogle();
-      if (user != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Đăng nhập thành công!"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Lỗi đăng nhập Google: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Widget _buildSocialIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 30, color: Colors.black87),
       ),
     );
   }
