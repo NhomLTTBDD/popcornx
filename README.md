@@ -270,26 +270,33 @@ lib/
 ```
 
 ---
-
 ## 📱 Giao diện ứng dụng
 
-### Trang chủ
-![Home Screen](assets/images/home.jpg)
+### 🎬 1. Trang chủ & khám phá phim
+<p align="center">
+  <img src="assets/images/home.jpg" width="220"/>
+  <img src="assets/images/detail.jpg" width="220"/>
+</p>
 
-### Chọn ghế
-![Seat Booking](assets/images/seat_booking.jpg)
+### 🏢 2. Chọn rạp & suất chiếu
+<p align="center">
+  <img src="assets/images/cinema.jpg" width="220"/>
+  <img src="assets/images/suatphim.jpg" width="220"/>
+</p>
 
-### Chi tiết phim
-![Movie detail](assets/images/detail.jpg)
+### 💺 3. Chọn ghế & thanh toán
+<p align="center">
+  <img src="assets/images/seat_booking.jpg" width="220"/>
+</p>
 
-### Suất chiếu phim
-![Movie](assets/images/suatphim.jpg)
+### 🎟️ 4. Vé của tôi
+<p align="center">
+  <img src="assets/images/ticket.jpg" width="220"/>
+</p>
 
-### Vé của tôi
-![My Tickets](assets/images/ticket.jpg)
-
-### Chọn rạp
-![Cinema](assets/images/cinema.jpg)
+<p align="center">
+  <i>Hình ảnh giao diện minh họa luồng sử dụng chính của ứng dụng PopcornX</i>
+</p>
 
 
 
@@ -379,9 +386,11 @@ Dự án này được phát hành dưới giấy phép MIT. Xem file `LICENSE` 
 ## 👨‍💻 Tác giả
 
 **Sinh viên CNTT**
+- Trần Tiến Danh
+- GitHub: https://github.com/Danhtran07
 
-- GitHub: [@your-username](https://github.com/your-username)
-- Email: your.email@example.com
+- Nguyễn Thị Thu Hiền
+- Github: https://github.com/Nguyenhien171
 
 ---
 
