@@ -142,23 +142,6 @@
 - ✅ Cập nhật tên và email
 - ✅ Quản lý tài khoản
 
-### 🔧 Tính năng Admin (Optional - Tăng điểm)
-
-> 💡 *Các tính năng này có thể được mở rộng trong tương lai*
-
-- 📝 Quản lý phim (thêm / sửa / xóa)
-- 📅 Quản lý lịch chiếu
-- 🎫 Quản lý vé
-- 📤 Upload hình ảnh phim lên Firebase Storage
-
----
-
-## 📱 Screenshots
-
-> 📸 *Các hình ảnh minh họa sẽ được cập nhật sau*
-
----
-
 ## 🚀 Hướng dẫn cài đặt
 
 ### Yêu cầu hệ thống

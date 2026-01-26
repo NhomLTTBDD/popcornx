@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               title: const Text(
-                'Popcornx',
+                'PopcornX',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

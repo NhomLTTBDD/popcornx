@@ -24,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
                     text: const TextSpan(
                       children: [
                         TextSpan(
-                          text: 'Popcornx',
+                          text: 'PopcornX',
                           style: TextStyle(
                             fontSize: 45.0,
                             fontWeight: FontWeight.w600,

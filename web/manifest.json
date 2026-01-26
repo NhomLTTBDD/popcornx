@@ -1,11 +1,11 @@
 {
-    "name": "baitapthuchanh",
-    "short_name": "baitapthuchanh",
+    "name": "PopcornX",
+    "short_name": "PopcornX",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#E50914",
+    "theme_color": "#E50914",
+    "description": "PopcornX - Ứng dụng đặt vé xem phim đa nền tảng",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

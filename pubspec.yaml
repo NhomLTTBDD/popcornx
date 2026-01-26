@@ -1,5 +1,5 @@
 name: baitapthuchanh
-description: "A new Flutter project."
+description: "PopcornX - Ứng dụng đặt vé xem phim đa nền tảng"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,10 +38,6 @@ dependencies:
   firebase_remote_config: ^5.5.0
   flutter_svg: ^2.0.9
   intl: ^0.19.0
-
-
-
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -56,6 +52,27 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.0
+  flutter_launcher_icons: ^0.13.1
+
+# Cấu hình Flutter Launcher Icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/app_icon.png
+  adaptive_icon_background: "#E50914"
+  adaptive_icon_foreground: assets/images/app_icon.png
+
+# Cấu hình Native Splash Screen
+flutter_native_splash:
+  color: "#E50914"
+  image: assets/images/logo.png
+  android: true
+  ios: true
+  fullscreen: true
+  android_12:
+    color: "#E50914"
+    image: assets/images/logo.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

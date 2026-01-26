@@ -28,10 +28,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Popcornx',
+      title: 'PopcornX',
       debugShowCheckedModeBanner: false,
       theme: lightMode,
-      // Gắn navigatorKey để AppNavigator có thể điều hướng
       navigatorKey: AppNavigator.navigatorKey,
       home: const AuthWrapper(),
     );
