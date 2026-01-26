@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:baitapthuchanh/screens/signin_screen.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/services/auth_service.dart';
 import 'package:baitapthuchanh/theme/theme.dart';
 import 'package:baitapthuchanh/widgets/custom_scaffold.dart';
@@ -229,14 +229,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignInScreen(),
-                                ),
-                              );
-                            },
+                            onTap: AppNavigator.goToSignIn,
                             child: Text(
                               'Sign in',
                               style: TextStyle(
@@ -284,7 +277,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          // Navigation will be handled by auth state listener in main.dart
         }
       } on FirebaseAuthException catch (e) {
         String message = "Đã xảy ra lỗi.";

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/services/firestore_service.dart';
 import 'package:baitapthuchanh/screens/profile_screen.dart';
 import 'package:baitapthuchanh/screens/movie_detail_screen.dart';
@@ -284,26 +285,11 @@ class _BannerItem extends StatelessWidget {
       movieDoc.data() as Map<String, dynamic>,
       movieDoc.id,
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MovieDetailScreen(
-          movie: movie,
-          firestoreService: firestoreService,
-        ),
-      ),
-    );
+    AppNavigator.goToMovieDetail(movie);
   }
 
   void _navigateToCinemaSelection(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CinemaSelectionScreen(
-          firestoreService: firestoreService,
-        ),
-      ),
-    );
+    AppNavigator.goToCinemaSelection();
   }
 
   @override
@@ -451,15 +437,7 @@ class _MovieCard extends StatelessWidget {
       movieDoc.data() as Map<String, dynamic>,
       movieDoc.id,
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MovieDetailScreen(
-          movie: movie,
-          firestoreService: firestoreService,
-        ),
-      ),
-    );
+    AppNavigator.goToMovieDetail(movie);
   }
 
   @override
@@ -652,14 +630,7 @@ class _BottomNav extends StatelessWidget {
   });
 
   void _navigateToCinemaSelection(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CinemaSelectionScreen(
-          firestoreService: firestoreService,
-        ),
-      ),
-    );
+    AppNavigator.goToCinemaSelection();
   }
 
   @override
@@ -696,16 +667,7 @@ class _BottomNav extends StatelessWidget {
           _NavItem(
             icon: Icons.person_outline,
             active: false,
-            onTap: () {
-              if (user != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfileScreen(user: user!),
-                  ),
-                );
-              }
-            },
+            onTap: AppNavigator.goToProfile,
           ),
         ],
       ),

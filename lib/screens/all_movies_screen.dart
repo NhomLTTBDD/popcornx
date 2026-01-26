@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/models/movie.dart';
 import 'package:baitapthuchanh/services/firestore_service.dart';
-import 'package:baitapthuchanh/screens/movie_detail_screen.dart';
 
 class AllMoviesScreen extends StatelessWidget {
   final FirestoreService firestoreService;
@@ -29,7 +29,7 @@ class AllMoviesScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: AppNavigator.goBack,
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -110,15 +110,7 @@ class _MovieGridCard extends StatelessWidget {
   });
 
   void _navigateToDetail(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MovieDetailScreen(
-          movie: movie,
-          firestoreService: firestoreService,
-        ),
-      ),
-    );
+    AppNavigator.goToMovieDetail(movie);
   }
 
   @override

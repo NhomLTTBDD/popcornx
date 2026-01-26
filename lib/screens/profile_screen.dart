@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/services/remote_config_service.dart';
 import 'package:baitapthuchanh/services/auth_service.dart';
 
@@ -18,31 +19,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A1A),
-          title: const Text(
-            'Login successful 🎉',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Text(
-            'Welcome ${widget.user.displayName ?? ''}!',
-            style: const TextStyle(color: Colors.grey),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK',
-                  style: TextStyle(color: Colors.redAccent)),
-            ),
-          ],
-        ),
-      );
-    });
-
     _loadRemoteConfig();
   }
 
@@ -102,7 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: IconButton(
           icon:
               const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: AppNavigator.goBack,
         ),
       ),
       body: Padding(
@@ -138,7 +114,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            /// SLOGAN
             Text(
               slogan,
               style: const TextStyle(

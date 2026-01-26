@@ -10,7 +10,6 @@ class AuthService {
     scopes: ['email'],
   );
 
-  // Email & Password Sign In
   Future<UserCredential?> signInWithEmailAndPassword(
     String email,
     String password,
@@ -26,7 +25,6 @@ class AuthService {
     }
   }
 
-  // Email & Password Sign Up
   Future<UserCredential?> signUpWithEmailAndPassword(
     String email,
     String password,
@@ -38,10 +36,8 @@ class AuthService {
         password: password,
       );
 
-      // Update display name
       await userCredential.user?.updateDisplayName(name);
 
-      // Save to Firestore
       if (userCredential.user != null) {
         await _firestoreService.saveUserIfNotExists(userCredential.user!, name: name);
       }
@@ -52,7 +48,6 @@ class AuthService {
     }
   }
 
-  // Google Sign In
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -71,7 +66,6 @@ class AuthService {
 
       final userCredential = await _auth.signInWithCredential(credential);
 
-      // Save to Firestore
       if (userCredential.user != null) {
         await _firestoreService.saveUserIfNotExists(userCredential.user!);
       }
@@ -83,15 +77,12 @@ class AuthService {
     }
   }
 
-  // Sign Out
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
-  // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Auth state stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 }

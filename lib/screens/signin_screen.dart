@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:baitapthuchanh/screens/signup_screen.dart';
-import 'package:baitapthuchanh/screens/forget_password_screen.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/services/auth_service.dart';
 import 'package:baitapthuchanh/theme/theme.dart';
 import 'package:baitapthuchanh/widgets/custom_scaffold.dart';
@@ -130,14 +129,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ],
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ForgetPasswordScreen(),
-                                ),
-                              );
-                            },
+                            onTap: AppNavigator.goToForgetPassword,
                             child: Text(
                               'Forget password?',
                               style: TextStyle(
@@ -217,14 +209,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignUpScreen(),
-                                ),
-                              );
-                            },
+                            onTap: AppNavigator.goToSignUp,
                             child: Text(
                               'Sign up',
                               style: TextStyle(

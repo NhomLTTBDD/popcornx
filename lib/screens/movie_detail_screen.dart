@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/models/movie.dart';
-import 'package:baitapthuchanh/screens/cinema_selection_screen.dart';
 import 'package:baitapthuchanh/services/firestore_service.dart';
 
 class MovieDetailScreen extends StatelessWidget {
@@ -45,7 +45,7 @@ class MovieDetailScreen extends StatelessWidget {
             backgroundColor: Colors.transparent,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => AppNavigator.goBack(),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: _MovieImage(
@@ -56,7 +56,6 @@ class MovieDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Nội dung chi tiết
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -137,14 +136,7 @@ class MovieDetailScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         if (firestoreService != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CinemaSelectionScreen(
-                                firestoreService: firestoreService!,
-                              ),
-                            ),
-                          );
+                          AppNavigator.goToCinemaSelection();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

@@ -1,6 +1,3 @@
-// File này chỉ chứa UI (giao diện) cho màn hình vé đã mua
-// Logic xử lý được tách ra file my_tickets_logic.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,9 +8,7 @@ import 'package:baitapthuchanh/models/showtime.dart';
 import 'package:baitapthuchanh/services/firestore_service.dart';
 import 'package:baitapthuchanh/services/my_tickets.dart';
 
-// Màn hình hiển thị vé đã mua
 class MyTicketsScreen extends StatelessWidget {
-  // Biến lưu service để lấy dữ liệu từ Firestore
   final FirestoreService firestoreService;
 
   const MyTicketsScreen({
@@ -23,13 +18,10 @@ class MyTicketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Bước 1: Tạo object logic để xử lý
     final logic = MyTicketsLogic(firestoreService: firestoreService);
 
-    // Bước 2: Kiểm tra user có đăng nhập không
     final isLoggedIn = logic.checkUserLoggedIn();
 
-    // Bước 3: Nếu chưa đăng nhập thì hiển thị thông báo
     if (!isLoggedIn) {
       return Scaffold(
         backgroundColor: const Color(0xFF0F0F0F),
@@ -50,7 +42,6 @@ class MyTicketsScreen extends StatelessWidget {
       );
     }
 
-    // Bước 4: Nếu đã đăng nhập thì hiển thị danh sách vé
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
@@ -61,20 +52,14 @@ class MyTicketsScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
-      // Bước 5: Dùng StreamBuilder để lấy dữ liệu real-time từ Firestore
       body: StreamBuilder<List<Booking>>(
-        // Lấy stream từ logic
         stream: logic.getUserBookingsStream(),
         builder: (context, snapshot) {
-          // Bước 6: Kiểm tra trạng thái kết nối
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Đang tải dữ liệu thì hiển thị loading
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Bước 7: Kiểm tra có lỗi không
           if (snapshot.hasError) {
-            // Có lỗi thì hiển thị thông báo lỗi
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -90,22 +75,16 @@ class MyTicketsScreen extends StatelessWidget {
             );
           }
 
-          // Bước 8: Kiểm tra có dữ liệu không
           if (!snapshot.hasData) {
-            // Không có dữ liệu thì hiển thị empty
             return buildEmptyState();
           }
 
-          // Bước 9: Lấy danh sách bookings từ snapshot
           final bookingList = snapshot.data!;
 
-          // Bước 10: Kiểm tra danh sách có rỗng không
           if (bookingList.isEmpty) {
-            // Danh sách rỗng thì hiển thị empty state
             return buildEmptyState();
           }
 
-          // Bước 11: Hiển thị danh sách vé
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: bookingList.length,
@@ -125,7 +104,6 @@ class MyTicketsScreen extends StatelessWidget {
     );
   }
 
-  // Hàm hiển thị màn hình trống khi chưa có vé
   Widget buildEmptyState() {
     return Center(
       child: Column(
@@ -152,13 +130,9 @@ class MyTicketsScreen extends StatelessWidget {
   }
 }
 
-// Widget hiển thị một vé (tách ra để code dễ đọc hơn)
 class TicketCardWidget extends StatelessWidget {
-  // Biến lưu thông tin booking
   final Booking booking;
-  // Biến lưu service để lấy dữ liệu
   final FirestoreService firestoreService;
-  // Biến lưu logic để xử lý
   final MyTicketsLogic logic;
 
   const TicketCardWidget({
@@ -176,23 +150,18 @@ class TicketCardWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      // Bước 1: Lấy thông tin phim từ Firestore
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: firestoreService.getMovieByIdStream(booking.movieId),
         builder: (context, movieSnapshot) {
-          // Kiểm tra có dữ liệu phim không
           Movie? movie;
           if (movieSnapshot.hasData && movieSnapshot.data!.exists) {
-            // Có dữ liệu thì chuyển đổi thành Movie object
             final movieData = movieSnapshot.data!.data()!;
             final movieId = movieSnapshot.data!.id;
             movie = Movie.fromFirestore(movieData, movieId);
           } else {
-            // Không có dữ liệu thì để null
             movie = null;
           }
 
-          // Bước 2: Lấy thông tin rạp từ Firestore
           return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: firestoreService.getCinemaByIdStream(booking.cinemaId),
             builder: (context, cinemaSnapshot) {

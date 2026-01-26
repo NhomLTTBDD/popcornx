@@ -138,14 +138,10 @@ class _MovieWithShowtimesCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to movie detail screen
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => MovieDetailScreen(
-                movie: movie,
-                firestoreService: firestoreService,
-              ),
+              builder: (context) => MovieDetailScreen(movie: movie),
             ),
           );
         },
@@ -341,7 +337,6 @@ class _ShowtimeChip extends StatelessWidget {
   }
 }
 
-/// Widget hiển thị hình ảnh phim
 class _MovieImage extends StatelessWidget {
   final String image;
   final double width;

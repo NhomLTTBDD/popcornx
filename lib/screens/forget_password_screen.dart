@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 
 class ForgetPasswordScreen extends StatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -36,7 +37,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context);
+          AppNavigator.goBack();
         }
       } on FirebaseAuthException catch (e) {
         String errorMessage = "Đã xảy ra lỗi.";
@@ -78,7 +79,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
         title: const Text('Forget Password'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.pop(context),
+          onPressed: AppNavigator.goBack,
         ),
       ),
       body: Padding(

@@ -53,7 +53,7 @@ class PaymentLogic {
         showtimeId: showtime.id,
         seats: selectedSeats,
         totalPrice: totalPrice,
-        status: 'paid', // Đặt status là 'paid' ngay khi tạo booking
+        status: 'paid',
       );
 
       if (bookingId.isEmpty) {

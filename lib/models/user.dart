@@ -1,4 +1,3 @@
-/// Model class đại diện cho một user trong hệ thống
 class AppUser {
   final String uid;
   final String name;
@@ -30,7 +29,6 @@ class AppUser {
     );
   }
 
-  /// Convert AppUser thành Map để lưu vào Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'uid': uid,

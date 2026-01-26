@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import '../models/movie.dart';
 import '../models/cinema.dart';
 import '../models/showtime.dart';
@@ -93,7 +94,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              AppNavigator.replaceToDashboard();
             },
             child: const Text('OK'),
           ),
@@ -104,8 +105,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // UI giữ nguyên phần layout của bạn
-    // (InfoCardWidget không cần tách – nó là UI component)
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(title: const Text('Thanh Toán')),

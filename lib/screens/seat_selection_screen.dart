@@ -3,22 +3,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/models/movie.dart';
 import 'package:baitapthuchanh/models/cinema.dart';
 import 'package:baitapthuchanh/models/showtime.dart';
 import 'package:baitapthuchanh/services/firestore_service.dart';
 import 'package:baitapthuchanh/services/seat_selection.dart';
-import 'package:baitapthuchanh/screens/payment_screen.dart';
 
-// Màn hình chọn ghế
 class SeatSelectionScreen extends StatefulWidget {
-  // Thông tin phim
   final Movie movie;
-  // Thông tin rạp
   final Cinema cinema;
-  // Thông tin khung giờ
   final Showtime showtime;
-  // Service để lấy dữ liệu
   final FirestoreService firestoreService;
 
   const SeatSelectionScreen({
@@ -34,12 +29,9 @@ class SeatSelectionScreen extends StatefulWidget {
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  // Danh sách ghế đã chọn
   final List<String> selectedSeats = [];
-  // Danh sách ghế đã bán (không cho chọn)
   List<String> bookedSeats = [];
 
-  // Object logic để xử lý
   late SeatSelectionLogic logic;
 
   @override
@@ -54,47 +46,34 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     loadBookedSeats();
   }
 
-  // Hàm load danh sách ghế đã bán từ Firestore
   Future<void> loadBookedSeats() async {
-    // Bước 1: Gọi hàm từ logic để lấy danh sách ghế đã bán
     final booked = await logic.loadBookedSeats();
     
-    // Bước 2: Cập nhật danh sách ghế đã bán
     setState(() {
       bookedSeats = booked;
     });
   }
 
-  // Hàm xử lý khi nhấn vào một ghế
   void toggleSeat(String seatId) {
-    // Bước 1: Kiểm tra ghế đã bán chưa (dùng logic)
     final isBooked = logic.isSeatBooked(seatId, bookedSeats);
     if (isBooked) {
-      // Ghế đã bán rồi thì không cho chọn
       return;
     }
 
-    // Bước 2: Kiểm tra ghế đã được chọn chưa (dùng logic)
     final isSelected = logic.isSeatSelected(seatId, selectedSeats);
     
-    // Bước 3: Cập nhật danh sách
     setState(() {
       if (isSelected) {
-        // Đã chọn rồi thì bỏ chọn (dùng logic)
         logic.removeSeatFromList(seatId, selectedSeats);
       } else {
-        // Chưa chọn thì thêm vào danh sách (dùng logic)
         logic.addSeatToList(seatId, selectedSeats);
       }
     });
   }
 
-  // Hàm xử lý khi nhấn nút tiếp tục
   void handleContinue() {
-    // Bước 1: Kiểm tra đã chọn ghế chưa (dùng logic)
     final hasSeats = logic.hasSelectedSeats(selectedSeats);
     if (!hasSeats) {
-      // Chưa chọn ghế thì hiển thị thông báo
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Vui lòng chọn ít nhất một ghế'),
@@ -104,24 +83,14 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       return;
     }
 
-    // Bước 2: Tính tổng tiền (dùng logic)
     final totalPrice = logic.calculateTotalPrice(selectedSeats.length);
 
-    // Bước 3: Chuyển sang màn hình thanh toán
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) {
-          return PaymentScreen(
-            movie: widget.movie,
-            cinema: widget.cinema,
-            showtime: widget.showtime,
-            selectedSeats: selectedSeats,
-            totalPrice: totalPrice,
-            firestoreService: widget.firestoreService,
-          );
-        },
-      ),
+    AppNavigator.goToPayment(
+      movie: widget.movie,
+      cinema: widget.cinema,
+      showtime: widget.showtime,
+      selectedSeats: selectedSeats,
+      totalPrice: totalPrice,
     );
   }
 
@@ -138,21 +107,17 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: AppNavigator.goBack,
         ),
       ),
       body: Column(
         children: [
-          // Phần thông tin phim và showtime
           BookingInfoWidget(
             movie: widget.movie,
             cinema: widget.cinema,
             showtime: widget.showtime,
           ),
           const SizedBox(height: 24),
-          // Phần hiển thị "MÀN HÌNH"
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(16),
@@ -192,7 +157,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               ),
             ),
           ),
-          // Phần bottom bar với tổng tiền và nút tiếp tục
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -277,7 +241,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 }
 
-// Widget hiển thị thông tin booking
 class BookingInfoWidget extends StatelessWidget {
   final Movie movie;
   final Cinema cinema;
@@ -339,7 +302,6 @@ class BookingInfoWidget extends StatelessWidget {
   }
 }
 
-// Widget hiển thị bản đồ ghế
 class SeatMapWidget extends StatelessWidget {
   final List<String> selectedSeats;
   final List<String> bookedSeats;
@@ -390,15 +352,12 @@ class SeatMapWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        // Phần hiển thị các hàng ghế
         ...List.generate(6, (rowIndex) {
-          // Chuyển số thành chữ cái
           final rowLetter = String.fromCharCode(65 + rowIndex);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                // Nhãn hàng (A, B, C, D, E, F)
                 SizedBox(
                   width: 40,
                   child: Center(
@@ -425,11 +384,8 @@ class SeatMapWidget extends StatelessWidget {
                     ),
                     itemCount: 10,
                     itemBuilder: (context, colIndex) {
-                      // Tạo ID ghế (ví dụ: A1, A2, B3...)
                       final seatId = '$rowLetter${colIndex + 1}';
-                      // Kiểm tra ghế đã được chọn chưa (dùng logic)
                       final isSelected = logic.isSeatSelected(seatId, selectedSeats);
-                      // Kiểm tra ghế đã bán chưa (dùng logic)
                       final isBooked = logic.isSeatBooked(seatId, bookedSeats);
 
                       return SeatWidget(
@@ -469,23 +425,19 @@ class SeatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Xác định màu sắc dựa trên trạng thái ghế
     Color backgroundColor;
     Color borderColor;
     Color textColor;
 
     if (isBooked) {
-      // Ghế đã bán - màu xám, không cho chọn
       backgroundColor = Colors.grey.shade800;
       borderColor = Colors.grey.shade700;
       textColor = Colors.grey.shade600;
     } else if (isSelected) {
-      // Ghế đã chọn - màu đỏ
       backgroundColor = Colors.redAccent;
       borderColor = Colors.redAccent;
       textColor = Colors.white;
     } else {
-      // Ghế trống - màu xám đậm, có thể chọn
       backgroundColor = Colors.grey.shade900;
       borderColor = Colors.grey.shade700;
       textColor = Colors.white;
@@ -515,7 +467,6 @@ class SeatWidget extends StatelessWidget {
   }
 }
 
-// Widget hiển thị chú thích
 class SeatLegendWidget extends StatelessWidget {
   const SeatLegendWidget({super.key});
 
@@ -546,7 +497,6 @@ class SeatLegendWidget extends StatelessWidget {
   }
 }
 
-// Widget hiển thị một item trong chú thích
 class LegendItemWidget extends StatelessWidget {
   final Color color;
   final Color borderColor;

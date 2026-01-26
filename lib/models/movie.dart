@@ -1,5 +1,3 @@
-/// Model class đại diện cho một bộ phim
-/// Lưu ý: Movie KHÔNG có cinemaId vì một phim có thể chiếu ở nhiều rạp
 class Movie {
   final String id;
   final String title;
@@ -17,7 +15,6 @@ class Movie {
     this.createdAt,
   });
 
-  /// Factory constructor để tạo Movie từ Firestore document
   factory Movie.fromFirestore(Map<String, dynamic> data, String id) {
     return Movie(
       id: id,
@@ -29,7 +26,6 @@ class Movie {
     );
   }
 
-  /// Convert Movie thành Map để lưu vào Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'title': title,

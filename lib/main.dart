@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'services/firestore_service.dart';
-import 'routes/routes.dart';
+import 'navigation/app_navigator.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/theme.dart';
@@ -16,6 +17,7 @@ void main() async {
   
   final firestoreService = FirestoreService();
   await firestoreService.initializeCinemaData();
+  await initializeDateFormatting('vi', null);
   
   runApp(const MyApp());
 }
@@ -29,8 +31,9 @@ class MyApp extends StatelessWidget {
       title: 'Popcornx',
       debugShowCheckedModeBanner: false,
       theme: lightMode,
+      // Gắn navigatorKey để AppNavigator có thể điều hướng
+      navigatorKey: AppNavigator.navigatorKey,
       home: const AuthWrapper(),
-      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }

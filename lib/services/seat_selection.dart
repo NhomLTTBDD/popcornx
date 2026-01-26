@@ -1,15 +1,8 @@
-// File này chứa logic xử lý cho màn hình chọn ghế
-// Tách file này ra để tách biệt logic và UI, code dễ đọc hơn
-
 import 'package:baitapthuchanh/services/firestore_service.dart';
 
-// Class chứa các hàm logic cho màn hình chọn ghế
 class SeatSelectionLogic {
-  // Service để lấy dữ liệu từ Firestore
   final FirestoreService firestoreService;
-  // ID của showtime
   final String showtimeId;
-  // Giá vé cố định: 60.000đ / ghế
   static const int ticketPrice = 60000;
 
   SeatSelectionLogic({
@@ -61,36 +54,24 @@ class SeatSelectionLogic {
     }
   }
 
-  // Hàm tạo danh sách ghế: A1-A10, B1-B10, ..., F1-F10
   List<String> generateSeatList() {
-    // Danh sách để lưu các ghế
     final seats = <String>[];
     
-    // Tạo 6 hàng (A-F)
     for (int row = 0; row < 6; row++) {
-      // Chuyển số thành chữ cái (65 là mã ASCII của 'A')
       final rowLetter = String.fromCharCode(65 + row);
       
-      // Tạo 10 cột (1-10)
       for (int col = 1; col <= 10; col++) {
-        // Tạo ID ghế (ví dụ: A1, A2, B3...)
         final seatId = '$rowLetter$col';
-        // Thêm vào danh sách
         seats.add(seatId);
       }
     }
     
-    // Trả về danh sách
     return seats;
   }
 
-  // Hàm format giá tiền
-  // Chuyển đổi số thành chuỗi có dấu phẩy ngăn cách hàng nghìn
   String formatPrice(int price) {
-    // Bước 1: Chuyển số thành chuỗi (không có số thập phân)
     final priceString = price.toStringAsFixed(0);
     
-    // Bước 2: Thêm dấu phẩy ngăn cách hàng nghìn
     final formattedPrice = priceString.replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) {
@@ -98,7 +79,6 @@ class SeatSelectionLogic {
       },
     );
     
-    // Bước 3: Thêm chữ "đ" ở cuối
     return '$formattedPriceđ';
   }
 }

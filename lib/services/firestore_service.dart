@@ -23,7 +23,6 @@ class FirestoreService {
         .replaceAll(RegExp(r'^_|_$'), '');
   }
 
-  /// Lưu user vào Firestore (dùng user.uid làm ID - không dùng auto ID)
   Future<void> saveUserIfNotExists(User user, {String? name}) async {
     final docRef = _firestore.collection('users').doc(user.uid);
     final snapshot = await docRef.get();
@@ -46,7 +45,6 @@ class FirestoreService {
     }
   }
 
-  /// Lấy role của user
   Future<String?> getUserRole(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data()?['role'] as String?;
@@ -59,7 +57,6 @@ class FirestoreService {
         .snapshots();
   }
 
-  /// Lấy danh sách tất cả các rạp chiếu phim (Future)
   Future<List<Cinema>> getCinemas() async {
     final snapshot = await _firestore
         .collection('cinemas')
@@ -71,41 +68,24 @@ class FirestoreService {
     }).toList();
   }
 
-  // ==================== MOVIE METHODS ====================
-
-  /// Lấy Stream danh sách TẤT CẢ phim
-  /// Lưu ý: Một phim có thể chiếu ở nhiều rạp, nên không lọc phim theo cinemaId
-  /// Thay vào đó, khung giờ chiếu sẽ được lọc theo cinemaId
   Stream<QuerySnapshot<Map<String, dynamic>>> getAllMoviesStream() {
     return _firestore
         .collection('movies')
         .snapshots();
   }
 
-  /// Lấy Stream thông tin một phim theo movieId
-  /// Dùng để load thông tin Movie real-time sau khi đã group showtimes theo movieId
   Stream<DocumentSnapshot<Map<String, dynamic>>> getMovieByIdStream(String movieId) {
     return _firestore.collection('movies').doc(movieId).snapshots();
   }
 
-  /// Lấy Stream thông tin một rạp theo cinemaId
   Stream<DocumentSnapshot<Map<String, dynamic>>> getCinemaByIdStream(String cinemaId) {
     return _firestore.collection('cinemas').doc(cinemaId).snapshots();
   }
 
-  /// Lấy Stream thông tin một showtime theo showtimeId
   Stream<DocumentSnapshot<Map<String, dynamic>>> getShowtimeByIdStream(String showtimeId) {
     return _firestore.collection('showtimes').doc(showtimeId).snapshots();
   }
 
-  // ==================== SHOWTIME METHODS ====================
-
-  /// Lấy Stream danh sách khung giờ chiếu theo cinemaId
-  /// QUAN TRỌNG: Query theo cinemaId, sau đó group theo movieId ở client
-  /// Luồng dữ liệu: Cinema → Showtimes → Group by MovieId → Load Movie info
-  /// 
-  /// Lưu ý: Firestore yêu cầu composite index cho query với where + orderBy
-  /// Index cần tạo: collection: showtimes, fields: cinemaId (Ascending), time (Ascending)
   Stream<QuerySnapshot<Map<String, dynamic>>> getShowtimesByCinemaStream(
     String cinemaId,
   ) {
@@ -116,12 +96,6 @@ class FirestoreService {
         .snapshots();
   }
 
-  /// Lấy Stream danh sách khung giờ chiếu theo movieId VÀ cinemaId
-  /// QUAN TRỌNG: Phải lọc theo CẢ HAI để đảm bảo chỉ hiển thị khung giờ của rạp đang được chọn
-  /// Một phim có thể có khung giờ khác nhau ở các rạp khác nhau
-  /// 
-  /// Lưu ý: Firestore yêu cầu composite index cho query với 2 where clauses + orderBy
-  /// Index cần tạo: collection: showtimes, fields: movieId (Ascending), cinemaId (Ascending), time (Ascending)
   Stream<QuerySnapshot<Map<String, dynamic>>> getShowtimesByMovieAndCinemaStream(
     String movieId,
     String cinemaId,
@@ -134,10 +108,6 @@ class FirestoreService {
         .snapshots();
   }
 
-  // ==================== BOOKING METHODS ====================
-
-  /// Lấy danh sách ghế đã bán cho một showtime
-  /// Dùng để hiển thị ghế đã bán (disabled) trong seat map
   Future<List<String>> getBookedSeats(String showtimeId) async {
     try {
       final snapshot = await _firestore
@@ -160,8 +130,6 @@ class FirestoreService {
     }
   }
 
-  /// Tạo booking mới
-  /// Tạo ID từ userId_movieId_cinemaId_showtimeId_timestamp
   Future<String> createBooking({
     required String userId,
     required String movieId,
@@ -193,8 +161,6 @@ class FirestoreService {
     }
   }
 
-  /// Lấy Stream danh sách bookings của user (real-time)
-  /// Lưu ý: Cần composite index: collection: bookings, fields: userId (Ascending), status (Ascending), createdAt (Descending)
   Stream<List<Booking>> getUserBookingsStream(String userId) {
     return _firestore
         .collection('bookings')
@@ -209,8 +175,6 @@ class FirestoreService {
     });
   }
 
-  // ==================== INITIALIZE DATA ====================
-
   Future<void> initializeCinemaData({bool force = false}) async {
     try {
       if (!force) {
@@ -220,7 +184,6 @@ class FirestoreService {
           return;
         }
       } else {
-        // Xóa dữ liệu cũ nếu force = true
         final cinemasSnapshot = await _firestore.collection('cinemas').get();
         for (var doc in cinemasSnapshot.docs) {
           await doc.reference.delete();
@@ -241,7 +204,6 @@ class FirestoreService {
 
       final cinemaIds = <String>[];
       for (final cinema in cinemas) {
-        // Tạo ID từ name thay vì dùng auto ID
         final cinemaId = _generateIdFromTitle(cinema['name'] as String);
         await _firestore.collection('cinemas').doc(cinemaId).set(cinema);
         cinemaIds.add(cinemaId);
@@ -264,7 +226,6 @@ class FirestoreService {
         ];
 
         for (final movie in newMovies) {
-          // Tạo ID từ title thay vì dùng auto ID
           final movieId = _generateIdFromTitle(movie['title'] as String);
           await _firestore.collection('movies').doc(movieId).set(movie);
           movieIds.add(movieId);
@@ -279,19 +240,16 @@ class FirestoreService {
       ];
 
       int showtimeCount = 0;
-      // Tạo showtimes cho mỗi phim ở mỗi rạp
       for (int movieIndex = 0; movieIndex < movieIds.length; movieIndex++) {
         final movieId = movieIds[movieIndex];
         final times = showtimes[movieIndex % showtimes.length];
         
-        // Tạo showtimes cho phim này ở TẤT CẢ các rạp
         for (final cinemaId in cinemaIds) {
           for (final time in times) {
-            // Tạo ID từ movieId_cinemaId_time thay vì dùng auto ID
             final showtimeId = '${movieId}_${cinemaId}_${time.replaceAll(':', '')}';
             await _firestore.collection('showtimes').doc(showtimeId).set({
               'movieId': movieId,
-              'cinemaId': cinemaId, // QUAN TRỌNG: Phải có cinemaId
+              'cinemaId': cinemaId,
               'time': time,
             });
             showtimeCount++;

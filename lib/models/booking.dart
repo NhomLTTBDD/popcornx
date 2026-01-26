@@ -1,13 +1,12 @@
-/// Model class đại diện cho một booking (đặt vé)
 class Booking {
   final String id;
   final String userId;
   final String movieId;
   final String cinemaId;
   final String showtimeId;
-  final List<String> seats; // ["A1", "A2", "B3"]
+  final List<String> seats;
   final int totalPrice;
-  final String status; // "pending" | "paid"
+  final String status;
   final DateTime? createdAt;
 
   Booking({
@@ -22,7 +21,6 @@ class Booking {
     this.createdAt,
   });
 
-  /// Factory constructor để tạo Booking từ Firestore document
   factory Booking.fromFirestore(Map<String, dynamic> data, String id) {
     return Booking(
       id: id,
@@ -37,7 +35,6 @@ class Booking {
     );
   }
 
-  /// Convert Booking thành Map để lưu vào Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'userId': userId,

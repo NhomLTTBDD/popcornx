@@ -1,5 +1,4 @@
-import 'package:baitapthuchanh/screens/signin_screen.dart';
-import 'package:baitapthuchanh/screens/signup_screen.dart';
+import 'package:baitapthuchanh/navigation/app_navigator.dart';
 import 'package:baitapthuchanh/widgets/custom_scaffold.dart';
 import 'package:baitapthuchanh/widgets/welcom_button.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
                   Expanded(
                     child: WelcomeButton(
                       buttonText: 'Sign in',
-                      onTap: const SignInScreen(),
+                      onTap: AppNavigator.goToSignIn,
                       color: Colors.transparent,
                       textColor: Colors.white,
                     ),
@@ -56,7 +55,7 @@ class WelcomeScreen extends StatelessWidget {
                   Expanded(
                     child: WelcomeButton(
                       buttonText: 'Sign up',
-                      onTap: const SignUpScreen(),
+                      onTap: AppNavigator.goToSignUp,
                       color: Colors.white,
                       textColor: Colors.red,
                     ),

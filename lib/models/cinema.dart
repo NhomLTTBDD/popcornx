@@ -1,4 +1,3 @@
-/// Model class đại diện cho một rạp chiếu phim
 class Cinema {
   final String id;
   final String name;
@@ -8,7 +7,6 @@ class Cinema {
     required this.name,
   });
 
-  /// Factory constructor để tạo Cinema từ Firestore document
   factory Cinema.fromFirestore(Map<String, dynamic> data, String id) {
     return Cinema(
       id: id,
