@@ -14,7 +14,6 @@ class CustomScaffold extends StatelessWidget {
     ));
 
     return Scaffold(
-      // Cho phép nội dung body tràn ra phía sau AppBar
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),

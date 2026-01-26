@@ -15,7 +15,6 @@ void main() async {
   );
   
   final firestoreService = FirestoreService();
-  await firestoreService.initializeMovies();
   await firestoreService.initializeCinemaData();
   
   runApp(const MyApp());

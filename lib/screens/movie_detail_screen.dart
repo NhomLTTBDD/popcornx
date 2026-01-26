@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:baitapthuchanh/models/movie.dart';
+import 'package:baitapthuchanh/screens/cinema_selection_screen.dart';
+import 'package:baitapthuchanh/services/firestore_service.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   final Movie movie;
+  final FirestoreService? firestoreService;
 
-  const MovieDetailScreen({super.key, required this.movie});
+  const MovieDetailScreen({
+    super.key,
+    required this.movie,
+    this.firestoreService,
+  });
 
   String _getCategoryName(String category) {
     switch (category) {
@@ -129,13 +136,23 @@ class MovieDetailScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Đặt vé cho "${movie.title}"'),
-                            backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        if (firestoreService != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CinemaSelectionScreen(
+                                firestoreService: firestoreService!,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Không thể đặt vé. Vui lòng thử lại.'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,

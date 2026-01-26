@@ -50,14 +50,16 @@ class MoviesByCinemaScreen extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: firestoreService.getMoviesByCinemaStream(cinemaId),
+        // Lấy TẤT CẢ phim, không lọc theo cinemaId
+        // Vì một phim có thể chiếu ở nhiều rạp
+        // Khung giờ chiếu sẽ được lọc theo cinemaId trong widget con
+        stream: firestoreService.getAllMoviesStream(),
         builder: (context, snapshot) {
           // Loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Error state
           if (snapshot.hasError) {
             return Center(
               child: Column(
@@ -74,7 +76,6 @@ class MoviesByCinemaScreen extends StatelessWidget {
             );
           }
 
-          // Empty state
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Column(
@@ -103,6 +104,7 @@ class MoviesByCinemaScreen extends StatelessWidget {
               final movie = movies[index];
               return _MovieWithShowtimesCard(
                 movie: movie,
+                cinemaId: cinemaId, // Truyền cinemaId xuống widget con để lọc khung giờ
                 firestoreService: firestoreService,
               );
             },
@@ -114,12 +116,15 @@ class MoviesByCinemaScreen extends StatelessWidget {
 }
 
 /// Widget hiển thị một phim kèm danh sách khung giờ chiếu
+/// QUAN TRỌNG: Widget này nhận cinemaId để chỉ hiển thị khung giờ của rạp đang được chọn
 class _MovieWithShowtimesCard extends StatelessWidget {
   final Movie movie;
+  final String cinemaId; // ID của rạp đang được chọn - BẮT BUỘC để lọc khung giờ
   final FirestoreService firestoreService;
 
   const _MovieWithShowtimesCard({
     required this.movie,
+    required this.cinemaId,
     required this.firestoreService,
   });
 
@@ -137,7 +142,10 @@ class _MovieWithShowtimesCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => MovieDetailScreen(movie: movie),
+              builder: (_) => MovieDetailScreen(
+                movie: movie,
+                firestoreService: firestoreService,
+              ),
             ),
           );
         },
@@ -212,8 +220,14 @@ class _MovieWithShowtimesCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // Showtimes list
+              // QUAN TRỌNG: Lọc khung giờ theo CẢ movieId VÀ cinemaId
+              // Để đảm bảo chỉ hiển thị khung giờ của rạp đang được chọn
+              // Không được hiển thị lẫn khung giờ của rạp khác
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: firestoreService.getShowtimesByMovieStream(movie.id),
+                stream: firestoreService.getShowtimesByMovieAndCinemaStream(
+                  movie.id,
+                  cinemaId,
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Padding(

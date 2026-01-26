@@ -6,121 +6,87 @@ import 'package:baitapthuchanh/services/firestore_service.dart';
 import 'package:baitapthuchanh/screens/profile_screen.dart';
 import 'package:baitapthuchanh/screens/movie_detail_screen.dart';
 import 'package:baitapthuchanh/screens/movies_by_cinema_screen.dart';
+import 'package:baitapthuchanh/screens/cinema_showtimes_screen.dart';
+import 'package:baitapthuchanh/screens/cinema_selection_screen.dart';
+import 'package:baitapthuchanh/screens/my_tickets_screen.dart';
+import 'package:baitapthuchanh/screens/all_movies_screen.dart';
 import 'package:baitapthuchanh/models/movie.dart';
 import 'package:baitapthuchanh/models/cinema.dart';
-import 'package:baitapthuchanh/widgets/cinema_selection_bottom_sheet.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentIndex = 0;
+  final PageController _pageController = PageController();
+  final FirestoreService _firestoreService = FirestoreService();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final firestoreService = FirestoreService();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Popcornx',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          // Nút "Chọn rạp"
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton.icon(
-              onPressed: () => _showCinemaSelection(context, firestoreService),
-              icon: const Icon(Icons.location_on, color: Colors.redAccent),
-              label: const Text(
-                'Chọn rạp',
-                style: TextStyle(color: Colors.redAccent),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.redAccent.withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+      appBar: _currentIndex == 0
+          ? AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: const Text(
+                'Popcornx',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            ),
-          ),
+            )
+          : null,
+      bottomNavigationBar: _BottomNav(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        firestoreService: _firestoreService,
+        user: user,
+      ),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: [
+          // Tab 0: Home (Movies)
+          _HomeTab(user: user, firestoreService: _firestoreService),
+          // Tab 1: All Movies
+          AllMoviesScreen(firestoreService: _firestoreService),
+          // Tab 2: My Tickets
+          MyTicketsScreen(firestoreService: _firestoreService),
+          // Tab 3: More (placeholder)
+          _MoreTab(),
         ],
       ),
-      bottomNavigationBar: const _BottomNav(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Header(user: user),
-              const SizedBox(height: 16),
-              _DebugInitButton(firestoreService: firestoreService),
-              const SizedBox(height: 20),
-              const _TrendingBanner(), // 🔥 AUTO SLIDE
-              const SizedBox(height: 24),
-              const _CategorySection(category: 'vietnam', title: 'Phim Việt Nam'),
-              const SizedBox(height: 24),
-              const _CategorySection(
-                  category: 'international', title: 'Phim Quốc Tế'),
-              const SizedBox(height: 24),
-              const _CategorySection(category: 'horror', title: 'Phim Kinh Dị'),
-              const SizedBox(height: 24),
-              const _CategorySection(
-                  category: 'anime', title: 'Anime'),
-              const SizedBox(height: 24),
-              const _CategorySection(
-                  category: 'adventure', title: 'Phim Thám Hiểm'),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
     );
-  }
-
-  /// Hiển thị BottomSheet để chọn rạp chiếu phim
-  Future<void> _showCinemaSelection(
-    BuildContext context,
-    FirestoreService firestoreService,
-  ) async {
-    // Hiển thị BottomSheet và chờ kết quả
-    final selectedCinemaId = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => CinemaSelectionBottomSheet(
-        firestoreService: firestoreService,
-      ),
-    );
-
-    // Nếu có rạp được chọn, điều hướng đến màn hình phim của rạp đó
-    if (selectedCinemaId != null && context.mounted) {
-      // Lấy thông tin rạp để lấy tên
-      final cinemas = await firestoreService.getCinemas();
-      final selectedCinema = cinemas.firstWhere(
-        (cinema) => cinema.id == selectedCinemaId,
-        orElse: () => Cinema(id: selectedCinemaId, name: 'Rạp chiếu phim'),
-      );
-
-      // Điều hướng đến màn hình phim theo rạp
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MoviesByCinemaScreen(
-            cinemaId: selectedCinemaId,
-            cinemaName: selectedCinema.name,
-            firestoreService: firestoreService,
-          ),
-        ),
-      );
-    }
   }
 }
 
@@ -155,20 +121,6 @@ class _Header extends StatelessWidget {
         ),
         const Spacer(),
         _CircleIcon(icon: Icons.search, onTap: () {}),
-        const SizedBox(width: 12),
-        _CircleIcon(
-          icon: Icons.person_outline,
-          onTap: () {
-            if (user != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfileScreen(user: user!),
-                ),
-              );
-            }
-          },
-        ),
       ],
     );
   }
@@ -199,7 +151,9 @@ class _CircleIcon extends StatelessWidget {
 /* ================= TRENDING AUTO SLIDE ================= */
 
 class _TrendingBanner extends StatefulWidget {
-  const _TrendingBanner();
+  final FirestoreService firestoreService;
+
+  const _TrendingBanner({required this.firestoreService});
 
   @override
   State<_TrendingBanner> createState() => _TrendingBannerState();
@@ -209,6 +163,8 @@ class _TrendingBannerState extends State<_TrendingBanner> {
   final PageController _controller = PageController();
   Timer? _timer;
   int _currentPage = 0;
+
+  FirestoreService get _firestoreService => widget.firestoreService;
 
   void _startAutoSlide(int count) {
     _timer?.cancel();
@@ -249,18 +205,51 @@ class _TrendingBannerState extends State<_TrendingBanner> {
           _startAutoSlide(movies.length);
         });
 
-        return SizedBox(
-          height: 240,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: movies.length,
-            itemBuilder: (_, index) {
-              final movie = movies[index];
-              return _BannerItem(
-                movieDoc: movie,
-              );
-            },
-          ),
+        return Column(
+          children: [
+            SizedBox(
+              height: 240,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: movies.length,
+                onPageChanged: (index) {
+                  if (mounted) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  }
+                },
+                itemBuilder: (_, index) {
+                  final movie = movies[index];
+                  return _BannerItem(
+                    movieDoc: movie,
+                    firestoreService: widget.firestoreService,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Page indicator
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                movies.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? Colors.redAccent
+                        : Colors.grey.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -283,8 +272,12 @@ class _TrendingBannerState extends State<_TrendingBanner> {
 
 class _BannerItem extends StatelessWidget {
   final QueryDocumentSnapshot movieDoc;
+  final FirestoreService firestoreService;
 
-  const _BannerItem({required this.movieDoc});
+  const _BannerItem({
+    required this.movieDoc,
+    required this.firestoreService,
+  });
 
   void _navigateToDetail(BuildContext context) {
     final movie = Movie.fromFirestore(
@@ -294,7 +287,21 @@ class _BannerItem extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MovieDetailScreen(movie: movie),
+        builder: (_) => MovieDetailScreen(
+          movie: movie,
+          firestoreService: firestoreService,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToCinemaSelection(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CinemaSelectionScreen(
+          firestoreService: firestoreService,
+        ),
       ),
     );
   }
@@ -339,7 +346,11 @@ class _BannerItem extends StatelessWidget {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => _navigateToDetail(context),
+                    onPressed: () => _navigateToCinemaSelection(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                    ),
                     child: const Text('Book'),
                   ),
                 ],
@@ -357,8 +368,13 @@ class _BannerItem extends StatelessWidget {
 class _CategorySection extends StatelessWidget {
   final String category;
   final String title;
+  final FirestoreService firestoreService;
 
-  const _CategorySection({required this.category, required this.title});
+  const _CategorySection({
+    required this.category,
+    required this.title,
+    required this.firestoreService,
+  });
 
   static const double cardHeight = 230;
 
@@ -410,6 +426,7 @@ class _CategorySection extends StatelessWidget {
                   final movie = snapshot.data!.docs[index];
                   return _MovieCard(
                     movieDoc: movie,
+                    firestoreService: firestoreService,
                   );
                 },
               );
@@ -425,8 +442,9 @@ class _CategorySection extends StatelessWidget {
 
 class _MovieCard extends StatelessWidget {
   final QueryDocumentSnapshot movieDoc;
+  final FirestoreService firestoreService;
 
-  const _MovieCard({required this.movieDoc});
+  const _MovieCard({required this.movieDoc, required this.firestoreService});
 
   void _navigateToDetail(BuildContext context) {
     final movie = Movie.fromFirestore(
@@ -436,7 +454,10 @@ class _MovieCard extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MovieDetailScreen(movie: movie),
+        builder: (_) => MovieDetailScreen(
+          movie: movie,
+          firestoreService: firestoreService,
+        ),
       ),
     );
   }
@@ -523,26 +544,169 @@ class _MovieImage extends StatelessWidget {
   }
 }
 
+/* ================= HOME TAB ================= */
+
+class _HomeTab extends StatelessWidget {
+  final User? user;
+  final FirestoreService firestoreService;
+
+  const _HomeTab({
+    required this.user,
+    required this.firestoreService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Header(user: user),
+            const SizedBox(height: 20),
+            _TrendingBanner(firestoreService: firestoreService), // 🔥 AUTO SLIDE
+            const SizedBox(height: 24),
+            _CategorySection(
+                category: 'vietnam',
+                title: 'Phim Việt Nam',
+                firestoreService: firestoreService,
+            ),
+            const SizedBox(height: 24),
+            _CategorySection(
+                category: 'international',
+                title: 'Phim Quốc Tế',
+                firestoreService: firestoreService,
+            ),
+            const SizedBox(height: 24),
+            _CategorySection(
+                category: 'horror',
+                title: 'Phim Kinh Dị',
+                firestoreService: firestoreService,
+            ),
+            const SizedBox(height: 24),
+            _CategorySection(
+                category: 'anime',
+                title: 'Anime',
+                firestoreService: firestoreService,
+            ),
+            const SizedBox(height: 24),
+            _CategorySection(
+                category: 'adventure',
+                title: 'Phim Thám Hiểm',
+                firestoreService: firestoreService,
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/* ================= COMING SOON TAB ================= */
+
+class _ComingSoonTab extends StatelessWidget {
+  const _ComingSoonTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Sắp ra mắt',
+        style: TextStyle(color: Colors.grey, fontSize: 16),
+      ),
+    );
+  }
+}
+
+/* ================= MORE TAB ================= */
+
+class _MoreTab extends StatelessWidget {
+  const _MoreTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Thêm',
+        style: TextStyle(color: Colors.grey, fontSize: 16),
+      ),
+    );
+  }
+}
+
 /* ================= BOTTOM NAV ================= */
 
 class _BottomNav extends StatelessWidget {
-  const _BottomNav();
+  final int currentIndex;
+  final Function(int) onTap;
+  final FirestoreService firestoreService;
+  final User? user;
+
+  const _BottomNav({
+    required this.currentIndex,
+    required this.onTap,
+    required this.firestoreService,
+    required this.user,
+  });
+
+  void _navigateToCinemaSelection(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CinemaSelectionScreen(
+          firestoreService: firestoreService,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: const BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: const [
-          _NavItem(icon: Icons.movie, active: true),
-          _NavItem(icon: Icons.play_circle_outline),
-          _NavItem(icon: Icons.confirmation_number_outlined),
-          _NavItem(icon: Icons.more_horiz),
+        children: [
+          _NavItem(
+            icon: Icons.movie,
+            active: currentIndex == 0,
+            onTap: () => onTap(0),
+          ),
+          _NavItem(
+            icon: Icons.play_circle_outline,
+            active: currentIndex == 1,
+            onTap: () => onTap(1),
+          ),
+          _NavItem(
+            icon: Icons.location_on,
+            active: false,
+            onTap: () => _navigateToCinemaSelection(context),
+          ),
+          _NavItem(
+            icon: Icons.confirmation_number_outlined,
+            active: currentIndex == 2,
+            onTap: () => onTap(2),
+          ),
+          _NavItem(
+            icon: Icons.person_outline,
+            active: false,
+            onTap: () {
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileScreen(user: user!),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
@@ -552,57 +716,27 @@ class _BottomNav extends StatelessWidget {
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final bool active;
+  final VoidCallback onTap;
 
-  const _NavItem({required this.icon, this.active = false});
+  const _NavItem({
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: active ? Colors.redAccent : Colors.transparent,
-        shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: active ? Colors.redAccent : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: active ? Colors.white : Colors.grey),
       ),
-      child: Icon(icon, color: active ? Colors.white : Colors.grey),
     );
   }
 }
 
-/* ================= DEBUG ================= */
-
-class _DebugInitButton extends StatefulWidget {
-  final FirestoreService firestoreService;
-  const _DebugInitButton({required this.firestoreService});
-
-  @override
-  State<_DebugInitButton> createState() => _DebugInitButtonState();
-}
-
-class _DebugInitButtonState extends State<_DebugInitButton> {
-  bool _loading = false;
-
-  Future<void> _init() async {
-    setState(() => _loading = true);
-    await widget.firestoreService.initializeMovies(force: true);
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Khởi tạo phim thành công')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: _loading ? null : _init,
-      child: _loading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Text('Khởi tạo lại phim (Debug)'),
-    );
-  }
-}

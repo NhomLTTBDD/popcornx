@@ -3,10 +3,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:baitapthuchanh/models/cinema.dart';
 import 'package:baitapthuchanh/models/movie.dart';
 import 'package:baitapthuchanh/models/showtime.dart';
+import 'package:baitapthuchanh/models/booking.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String _generateIdFromTitle(String title) {
+    return title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[àáạảãâầấậẩẫăằắặẳẵ]'), 'a')
+        .replaceAll(RegExp(r'[èéẹẻẽêềếệểễ]'), 'e')
+        .replaceAll(RegExp(r'[ìíịỉĩ]'), 'i')
+        .replaceAll(RegExp(r'[òóọỏõôồốộổỗơờớợởỡ]'), 'o')
+        .replaceAll(RegExp(r'[ùúụủũưừứựửữ]'), 'u')
+        .replaceAll(RegExp(r'[ỳýỵỷỹ]'), 'y')
+        .replaceAll(RegExp(r'[đ]'), 'd')
+        .replaceAll(RegExp(r'[^a-z0-9]'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+  }
+
+  /// Lưu user vào Firestore (dùng user.uid làm ID - không dùng auto ID)
   Future<void> saveUserIfNotExists(User user, {String? name}) async {
     final docRef = _firestore.collection('users').doc(user.uid);
     final snapshot = await docRef.get();
@@ -29,114 +46,12 @@ class FirestoreService {
     }
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> getUserStream(String uid) {
-    return _firestore.collection('users').doc(uid).snapshots();
-  }
-
+  /// Lấy role của user
   Future<String?> getUserRole(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data()?['role'] as String?;
   }
 
-  Future<void> setUserRole(String uid, String role) async {
-    await _firestore.collection('users').doc(uid).update({
-      'role': role,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  // Khởi tạo phim Việt Nam vào Firestore
-  Future<void> initializeMovies({bool force = false}) async {
-    try {
-      final moviesRef = _firestore.collection('movies');
-      
-      if (!force) {
-        final snapshot = await moviesRef.limit(1).get();
-        if (snapshot.docs.isNotEmpty) {
-          print('Phim đã tồn tại trong Firestore, bỏ qua khởi tạo');
-          return;
-        }
-      } else {
-        final snapshot = await moviesRef.get();
-        for (var doc in snapshot.docs) {
-          await doc.reference.delete();
-        }
-        print('da xoa phim cu trong firestore');
-      }
-      
-      print('khoi tao phim');
-      final movies = [
-        // Phim Việt Nam
-        {
-          'title': 'Lật Mặt: 48H',
-          'image': 'assets/images/lat_mat.jpg',
-          'trending': true,
-          'category': 'vietnam',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Bố Già',
-          'image': 'assets/images/bo_gia.jpg',
-          'trending': false,
-          'category': 'vietnam',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Harry Potter và Bảo Bối Tử Thần',
-          'image': 'assets/images/harrypotter.jpg',
-          'trending': false,
-          'category': 'international',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Doraemon và Quân đoàn Robot',
-          'image': 'assets/images/Doraemon.jpg',
-          'trending': true,
-          'category': 'anime',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Gã hề ma quái phần 2',
-          'image': 'assets/images/ga_he_ma_quai.jpg',
-          'trending': false,
-          'category': 'horror',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'World War Z',
-          'image': 'assets/images/world_war_z.jpg',
-          'trending': true,
-          'category': 'horror',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Vùng Đất Câm Lặng',
-          'image': 'assets/images/vung_dat_cam_lang.jpg',
-          'trending': true,
-          'category': 'horror',
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-        {
-          'title': 'Interstellar',
-          'image': 'assets/images/interstellar.jpg',
-          'trending': false,
-          'category': 'sci-fi',
-          'createdAt': FieldValue.serverTimestamp(),
-        }
-      ];
-
-      for (final movie in movies) {
-        await moviesRef.add(movie);
-      }
-      print('them ${movies.length} phim vao firebase!');
-    } catch (e) {
-      print('loi khoi tao phim: $e');
-    }
-  }
-
-  // ==================== CINEMA METHODS ====================
-
-  /// Lấy Stream danh sách tất cả các rạp chiếu phim
   Stream<QuerySnapshot<Map<String, dynamic>>> getCinemasStream() {
     return _firestore
         .collection('cinemas')
@@ -158,56 +73,146 @@ class FirestoreService {
 
   // ==================== MOVIE METHODS ====================
 
-  /// Lấy Stream danh sách phim theo cinemaId
-  Stream<QuerySnapshot<Map<String, dynamic>>> getMoviesByCinemaStream(String cinemaId) {
+  /// Lấy Stream danh sách TẤT CẢ phim
+  /// Lưu ý: Một phim có thể chiếu ở nhiều rạp, nên không lọc phim theo cinemaId
+  /// Thay vào đó, khung giờ chiếu sẽ được lọc theo cinemaId
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllMoviesStream() {
     return _firestore
         .collection('movies')
-        .where('cinemaId', isEqualTo: cinemaId)
         .snapshots();
   }
 
-  /// Lấy danh sách phim theo cinemaId (Future)
-  Future<List<Movie>> getMoviesByCinema(String cinemaId) async {
-    final snapshot = await _firestore
-        .collection('movies')
-        .where('cinemaId', isEqualTo: cinemaId)
-        .get();
-    
-    return snapshot.docs.map((doc) {
-      return Movie.fromFirestore(doc.data(), doc.id);
-    }).toList();
+  /// Lấy Stream thông tin một phim theo movieId
+  /// Dùng để load thông tin Movie real-time sau khi đã group showtimes theo movieId
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getMovieByIdStream(String movieId) {
+    return _firestore.collection('movies').doc(movieId).snapshots();
+  }
+
+  /// Lấy Stream thông tin một rạp theo cinemaId
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getCinemaByIdStream(String cinemaId) {
+    return _firestore.collection('cinemas').doc(cinemaId).snapshots();
+  }
+
+  /// Lấy Stream thông tin một showtime theo showtimeId
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getShowtimeByIdStream(String showtimeId) {
+    return _firestore.collection('showtimes').doc(showtimeId).snapshots();
   }
 
   // ==================== SHOWTIME METHODS ====================
 
-  /// Lấy Stream danh sách khung giờ chiếu theo movieId
-  Stream<QuerySnapshot<Map<String, dynamic>>> getShowtimesByMovieStream(String movieId) {
+  /// Lấy Stream danh sách khung giờ chiếu theo cinemaId
+  /// QUAN TRỌNG: Query theo cinemaId, sau đó group theo movieId ở client
+  /// Luồng dữ liệu: Cinema → Showtimes → Group by MovieId → Load Movie info
+  /// 
+  /// Lưu ý: Firestore yêu cầu composite index cho query với where + orderBy
+  /// Index cần tạo: collection: showtimes, fields: cinemaId (Ascending), time (Ascending)
+  Stream<QuerySnapshot<Map<String, dynamic>>> getShowtimesByCinemaStream(
+    String cinemaId,
+  ) {
     return _firestore
         .collection('showtimes')
-        .where('movieId', isEqualTo: movieId)
+        .where('cinemaId', isEqualTo: cinemaId)
         .orderBy('time')
         .snapshots();
   }
 
-  /// Lấy danh sách khung giờ chiếu theo movieId (Future)
-  Future<List<Showtime>> getShowtimesByMovie(String movieId) async {
-    final snapshot = await _firestore
+  /// Lấy Stream danh sách khung giờ chiếu theo movieId VÀ cinemaId
+  /// QUAN TRỌNG: Phải lọc theo CẢ HAI để đảm bảo chỉ hiển thị khung giờ của rạp đang được chọn
+  /// Một phim có thể có khung giờ khác nhau ở các rạp khác nhau
+  /// 
+  /// Lưu ý: Firestore yêu cầu composite index cho query với 2 where clauses + orderBy
+  /// Index cần tạo: collection: showtimes, fields: movieId (Ascending), cinemaId (Ascending), time (Ascending)
+  Stream<QuerySnapshot<Map<String, dynamic>>> getShowtimesByMovieAndCinemaStream(
+    String movieId,
+    String cinemaId,
+  ) {
+    return _firestore
         .collection('showtimes')
         .where('movieId', isEqualTo: movieId)
+        .where('cinemaId', isEqualTo: cinemaId)
         .orderBy('time')
-        .get();
-    
-    return snapshot.docs.map((doc) {
-      return Showtime.fromFirestore(doc.data(), doc.id);
-    }).toList();
+        .snapshots();
+  }
+
+  // ==================== BOOKING METHODS ====================
+
+  /// Lấy danh sách ghế đã bán cho một showtime
+  /// Dùng để hiển thị ghế đã bán (disabled) trong seat map
+  Future<List<String>> getBookedSeats(String showtimeId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('bookings')
+          .where('showtimeId', isEqualTo: showtimeId)
+          .where('status', isEqualTo: 'paid')
+          .get();
+
+      final bookedSeats = <String>[];
+      for (var doc in snapshot.docs) {
+        final seats = doc.data()['seats'] as List<dynamic>?;
+        if (seats != null) {
+          bookedSeats.addAll(seats.map((e) => e.toString()));
+        }
+      }
+      return bookedSeats;
+    } catch (e) {
+      print('Lỗi khi lấy danh sách ghế đã bán: $e');
+      return [];
+    }
+  }
+
+  /// Tạo booking mới
+  /// Tạo ID từ userId_movieId_cinemaId_showtimeId_timestamp
+  Future<String> createBooking({
+    required String userId,
+    required String movieId,
+    required String cinemaId,
+    required String showtimeId,
+    required List<String> seats,
+    required int totalPrice,
+    String status = 'pending',
+  }) async {
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final bookingId = '${userId}_${movieId}_${cinemaId}_${showtimeId}_$timestamp';
+      
+      await _firestore.collection('bookings').doc(bookingId).set({
+        'userId': userId,
+        'movieId': movieId,
+        'cinemaId': cinemaId,
+        'showtimeId': showtimeId,
+        'seats': seats,
+        'totalPrice': totalPrice,
+        'status': status,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return bookingId;
+    } catch (e) {
+      print('Lỗi khi tạo booking: $e');
+      rethrow;
+    }
+  }
+
+  /// Lấy Stream danh sách bookings của user (real-time)
+  /// Lưu ý: Cần composite index: collection: bookings, fields: userId (Ascending), status (Ascending), createdAt (Descending)
+  Stream<List<Booking>> getUserBookingsStream(String userId) {
+    return _firestore
+        .collection('bookings')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'paid')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Booking.fromFirestore(doc.data(), doc.id);
+      }).toList();
+    });
   }
 
   // ==================== INITIALIZE DATA ====================
 
-  /// Khởi tạo dữ liệu mẫu cho cinemas, movies và showtimes
   Future<void> initializeCinemaData({bool force = false}) async {
     try {
-      // Kiểm tra xem đã có dữ liệu chưa
       if (!force) {
         final cinemasSnapshot = await _firestore.collection('cinemas').limit(1).get();
         if (cinemasSnapshot.docs.isNotEmpty) {
@@ -227,7 +232,6 @@ class FirestoreService {
         print('Đã xóa dữ liệu rạp chiếu cũ');
       }
 
-      // Tạo các rạp chiếu phim
       final cinemas = [
         {'name': 'CGV Vincom'},
         {'name': 'Lotte Cinema'},
@@ -237,39 +241,36 @@ class FirestoreService {
 
       final cinemaIds = <String>[];
       for (final cinema in cinemas) {
-        final docRef = await _firestore.collection('cinemas').add(cinema);
-        cinemaIds.add(docRef.id);
+        // Tạo ID từ name thay vì dùng auto ID
+        final cinemaId = _generateIdFromTitle(cinema['name'] as String);
+        await _firestore.collection('cinemas').doc(cinemaId).set(cinema);
+        cinemaIds.add(cinemaId);
       }
       print('Đã tạo ${cinemas.length} rạp chiếu phim');
 
-      // Tạo phim cho mỗi rạp (lấy từ movies collection hiện có hoặc tạo mới)
       final existingMovies = await _firestore.collection('movies').limit(4).get();
       final movieIds = <String>[];
 
       if (existingMovies.docs.isNotEmpty) {
-        // Cập nhật movies hiện có với cinemaId
-        for (int i = 0; i < existingMovies.docs.length && i < cinemaIds.length; i++) {
-          await existingMovies.docs[i].reference.update({
-            'cinemaId': cinemaIds[i],
-          });
-          movieIds.add(existingMovies.docs[i].id);
+        for (var doc in existingMovies.docs) {
+          movieIds.add(doc.id);
         }
       } else {
-        // Tạo movies mới nếu chưa có
         final newMovies = [
-          {'title': 'Lật Mặt: 48H', 'image': 'assets/images/lat_mat.jpg', 'cinemaId': cinemaIds[0]},
-          {'title': 'Bố Già', 'image': 'assets/images/bo_gia.jpg', 'cinemaId': cinemaIds[1]},
-          {'title': 'Harry Potter', 'image': 'assets/images/harrypotter.jpg', 'cinemaId': cinemaIds[2]},
-          {'title': 'Doraemon', 'image': 'assets/images/Doraemon.jpg', 'cinemaId': cinemaIds[3]},
+          {'title': 'Lật Mặt: 48H', 'image': 'assets/images/lat_mat.jpg', 'category': 'vietnam'},
+          {'title': 'Bố Già', 'image': 'assets/images/bo_gia.jpg', 'category': 'vietnam'},
+          {'title': 'Harry Potter', 'image': 'assets/images/harrypotter.jpg', 'category': 'international'},
+          {'title': 'Doraemon', 'image': 'assets/images/Doraemon.jpg', 'category': 'anime'},
         ];
 
         for (final movie in newMovies) {
-          final docRef = await _firestore.collection('movies').add(movie);
-          movieIds.add(docRef.id);
+          // Tạo ID từ title thay vì dùng auto ID
+          final movieId = _generateIdFromTitle(movie['title'] as String);
+          await _firestore.collection('movies').doc(movieId).set(movie);
+          movieIds.add(movieId);
         }
       }
 
-      // Tạo khung giờ chiếu cho mỗi phim
       final showtimes = [
         ['10:00', '13:30', '16:00', '18:30', '21:00'],
         ['09:30', '12:00', '14:30', '17:00', '19:30', '22:00'],
@@ -278,17 +279,26 @@ class FirestoreService {
       ];
 
       int showtimeCount = 0;
-      for (int i = 0; i < movieIds.length; i++) {
-        final times = showtimes[i % showtimes.length];
-        for (final time in times) {
-          await _firestore.collection('showtimes').add({
-            'movieId': movieIds[i],
-            'time': time,
-          });
-          showtimeCount++;
+      // Tạo showtimes cho mỗi phim ở mỗi rạp
+      for (int movieIndex = 0; movieIndex < movieIds.length; movieIndex++) {
+        final movieId = movieIds[movieIndex];
+        final times = showtimes[movieIndex % showtimes.length];
+        
+        // Tạo showtimes cho phim này ở TẤT CẢ các rạp
+        for (final cinemaId in cinemaIds) {
+          for (final time in times) {
+            // Tạo ID từ movieId_cinemaId_time thay vì dùng auto ID
+            final showtimeId = '${movieId}_${cinemaId}_${time.replaceAll(':', '')}';
+            await _firestore.collection('showtimes').doc(showtimeId).set({
+              'movieId': movieId,
+              'cinemaId': cinemaId, // QUAN TRỌNG: Phải có cinemaId
+              'time': time,
+            });
+            showtimeCount++;
+          }
         }
       }
-      print('Đã tạo $showtimeCount khung giờ chiếu');
+      print('Đã tạo $showtimeCount khung giờ chiếu cho ${movieIds.length} phim ở ${cinemaIds.length} rạp');
     } catch (e) {
       print('Lỗi khởi tạo dữ liệu rạp chiếu: $e');
     }

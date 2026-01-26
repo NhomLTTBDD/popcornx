@@ -16,7 +16,6 @@ class Cinema {
     );
   }
 
-  /// Convert Cinema thành Map để lưu vào Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,

@@ -1,11 +1,11 @@
 /// Model class đại diện cho một bộ phim
+/// Lưu ý: Movie KHÔNG có cinemaId vì một phim có thể chiếu ở nhiều rạp
 class Movie {
   final String id;
   final String title;
   final String image;
   final bool trending;
   final String category;
-  final String? cinemaId; // ID của rạp chiếu phim
   final DateTime? createdAt;
 
   Movie({
@@ -14,7 +14,6 @@ class Movie {
     required this.image,
     this.trending = false,
     this.category = 'international',
-    this.cinemaId,
     this.createdAt,
   });
 
@@ -26,7 +25,6 @@ class Movie {
       image: data['image'] ?? '',
       trending: data['trending'] ?? false,
       category: data['category'] ?? 'international',
-      cinemaId: data['cinemaId'] as String?,
       createdAt: data['createdAt']?.toDate(),
     );
   }
@@ -38,7 +36,6 @@ class Movie {
       'image': image,
       'trending': trending,
       'category': category,
-      if (cinemaId != null) 'cinemaId': cinemaId,
     };
   }
 }
